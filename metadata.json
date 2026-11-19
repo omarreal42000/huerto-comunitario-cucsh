@@ -1,0 +1,6 @@
+{
+  "name": "Huerto Comunitario CUCSH - UdeG",
+  "description": "Plataforma operativa, botánica y comunitaria del Huerto Comunitario del CUCSH, Universidad de Guadalajara: mapa cenital interactivo, fichas botánicas con placas QR y bitácora de campo.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

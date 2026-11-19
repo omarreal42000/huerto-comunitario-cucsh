@@ -1,0 +1,3393 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Huerto Comunitario CUCSH - UdeG</title>
+    <meta
+      name="description"
+      content="Plataforma operativa, botánica y comunitaria del Huerto Comunitario del CUCSH, Universidad de Guadalajara: mapa cenital interactivo, fichas botánicas con placas QR y bitácora de campo."
+    />
+    <meta property="og:title" content="Huerto Comunitario CUCSH - UdeG" />
+    <meta
+      property="og:description"
+      content="Mapa interactivo de 13 zonas, inventario de 35 marcadores y 24 especies botánicas, placas QR y tablero comunitario del Huerto CUCSH."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      if (window.tailwind) {
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                obsidian: '#0D100E',
+                obsidianSoft: '#161B18',
+                gold: '#D4AF37',
+                goldBright: '#E6C35C',
+                botanical: '#1B4332',
+                botanicalMid: '#2D6A4F',
+                botanicalLight: '#52B788',
+                cream: '#F7F6F1'
+              },
+              fontFamily: {
+                display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+                sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif']
+              }
+            }
+          }
+        };
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <style>
+      :root {
+        --obsidian: #0D100E;
+        --obsidian-soft: #161B18;
+        --gold: #D4AF37;
+        --gold-bright: #E6C35C;
+        --botanical: #1B4332;
+        --botanical-mid: #2D6A4F;
+        --botanical-light: #52B788;
+        --cream: #F7F6F1;
+      }
+      html {
+        scroll-behavior: smooth;
+        background-color: var(--cream);
+        color: #161B18;
+        font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+      }
+      body {
+        margin: 0;
+        background-color: var(--cream);
+        color: #161B18;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      .font-display {
+        font-family: "Cormorant Garamond", Georgia, serif;
+      }
+      .tabular-nums {
+        font-variant-numeric: tabular-nums;
+      }
+      .gold-gradient-btn {
+        background: linear-gradient(135deg, #D4AF37 0%, #E6C35C 55%, #C69B2B 100%);
+        color: #0D100E;
+      }
+      .gold-gradient-btn:hover {
+        filter: brightness(1.06);
+      }
+      .zone-shape {
+        cursor: pointer;
+        transition: filter 160ms ease, stroke-width 160ms ease, opacity 160ms ease;
+      }
+      .zone-shape:focus-visible {
+        outline: none;
+      }
+      .zone-active .zone-contour {
+        stroke: #E6C35C !important;
+        stroke-width: 4 !important;
+        filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.72));
+      }
+      @keyframes drawLeader {
+        from {
+          stroke-dashoffset: 380;
+          opacity: 0.25;
+        }
+        to {
+          stroke-dashoffset: 0;
+          opacity: 1;
+        }
+      }
+      @keyframes fadeInLabel {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .leader-line-anim {
+        stroke-dasharray: 380;
+        stroke-dashoffset: 380;
+        animation: drawLeader 320ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      .leader-label-anim {
+        animation: fadeInLabel 240ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .leader-line-anim,
+        .leader-label-anim {
+          animation: none !important;
+          stroke-dashoffset: 0 !important;
+        }
+        html {
+          scroll-behavior: auto;
+        }
+      }
+      .modal-backdrop {
+        background: rgba(13, 16, 14, 0.74);
+        backdrop-filter: blur(4px);
+      }
+      .aspect-16-9 {
+        aspect-ratio: 16 / 9;
+      }
+      @media print {
+        header, footer, #role-toolbar, #no-print-controls, #toast-container {
+          display: none !important;
+        }
+        body {
+          background: #FFFFFF !important;
+        }
+        .print-break-avoid {
+          break-inside: avoid;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-[#F7F6F1] text-[#161B18] antialiased selection:bg-[#D4AF37]/30 selection:text-[#0D100E]">
+    <!-- Top Header -->
+    <header class="sticky top-0 z-40 bg-[#0D100E] text-[#F7F6F1] border-b border-[#D4AF37]/30">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-4">
+        <a
+          href="#mapa"
+          onclick="window.switchTab('mapa'); return false;"
+          class="flex items-center gap-2.5 whitespace-nowrap shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4AF37] rounded"
+        >
+          <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true" class="shrink-0">
+            <circle cx="16" cy="16" r="14.5" fill="#161B18" stroke="#D4AF37" stroke-width="1.5" />
+            <path d="M16 24V11M16 18C12 18 10 15 10 11C13.5 11 16 13.5 16 18ZM16 15C19.5 15 22 12.5 22 9C18.5 9 16 11.5 16 15Z" fill="#52B788" stroke="#D4AF37" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span class="font-display text-xl sm:text-2xl font-bold tracking-tight text-[#E6C35C] whitespace-nowrap">
+            Huerto CUCSH
+          </span>
+        </a>
+
+        <nav aria-label="Navegación principal" class="hidden md:flex items-center gap-7 text-sm font-medium">
+          <button
+            type="button"
+            id="nav-tab-mapa"
+            onclick="window.switchTab('mapa')"
+            class="nav-tab-btn py-2 border-b-2 border-[#D4AF37] text-[#E6C35C] whitespace-nowrap shrink-0 transition-colors cursor-pointer"
+          >
+            Mapa Interactivo
+          </button>
+          <button
+            type="button"
+            id="nav-tab-fichas"
+            onclick="window.switchTab('fichas')"
+            class="nav-tab-btn py-2 border-b-2 border-transparent text-[#F7F6F1]/80 hover:text-[#E6C35C] whitespace-nowrap shrink-0 transition-colors cursor-pointer"
+          >
+            Fichas Botánicas
+          </button>
+          <button
+            type="button"
+            id="nav-tab-tablero"
+            onclick="window.switchTab('tablero')"
+            class="nav-tab-btn py-2 border-b-2 border-transparent text-[#F7F6F1]/80 hover:text-[#E6C35C] whitespace-nowrap shrink-0 transition-colors cursor-pointer"
+          >
+            Tablero y Bitácora
+          </button>
+        </nav>
+
+        <div class="flex items-center gap-2.5 shrink-0">
+          <button
+            type="button"
+            onclick="window.goToInstagramShowcase()"
+            class="gold-gradient-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold border border-[#E6C35C] shadow-sm whitespace-nowrap shrink-0 flex items-center gap-1.5 cursor-pointer"
+            title="Ir a la vitrina de Instagram @huerto_comunitario_cucsh"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+            </svg>
+            <span class="hidden sm:inline">@huerto_comunitario_cucsh</span>
+            <span class="sm:hidden">Instagram</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Operational Role & Mobile Navigation Strip -->
+    <div id="role-toolbar" class="bg-[#161B18] text-[#F7F6F1] border-b border-[#D4AF37]/20">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2 flex flex-wrap items-center justify-between gap-3">
+        <!-- Mobile Primary Tabs -->
+        <div class="grid grid-cols-3 md:hidden gap-1.5 w-full">
+          <button
+            type="button"
+            id="mob-tab-mapa"
+            onclick="window.switchTab('mapa')"
+            class="mob-tab-btn px-2 py-2 rounded-lg text-[11px] font-semibold text-center bg-[#D4AF37] text-[#0D100E] whitespace-nowrap truncate cursor-pointer"
+          >
+            Mapa
+          </button>
+          <button
+            type="button"
+            id="mob-tab-fichas"
+            onclick="window.switchTab('fichas')"
+            class="mob-tab-btn px-2 py-2 rounded-lg text-[11px] font-semibold text-center bg-[#0D100E] text-[#F7F6F1]/85 border border-[#D4AF37]/25 whitespace-nowrap truncate cursor-pointer"
+          >
+            Fichas QR
+          </button>
+          <button
+            type="button"
+            id="mob-tab-tablero"
+            onclick="window.switchTab('tablero')"
+            class="mob-tab-btn px-2 py-2 rounded-lg text-[11px] font-semibold text-center bg-[#0D100E] text-[#F7F6F1]/85 border border-[#D4AF37]/25 whitespace-nowrap truncate cursor-pointer"
+          >
+            Tablero
+          </button>
+        </div>
+
+        <p class="hidden md:block text-xs text-[#F7F6F1]/75 tracking-wide">
+          Universidad de Guadalajara · 13 Zonas · 35 Marcadores de Campo · 24 Especies Botánicas
+        </p>
+
+        <div class="flex items-center gap-2 ml-auto flex-wrap">
+          <div class="inline-flex items-center bg-[#0D100E] p-1 rounded-lg border border-[#D4AF37]/30" role="group" aria-label="Selector de rol">
+            <button
+              type="button"
+              id="role-btn-visitor"
+              onclick="window.setRole('visitor')"
+              class="px-3 py-1 rounded-md text-xs font-semibold transition-colors whitespace-nowrap shrink-0 cursor-pointer bg-[#2D6A4F] text-[#F7F6F1]"
+            >
+              Modo Visitante
+            </button>
+            <button
+              type="button"
+              id="role-btn-admin"
+              onclick="window.setRole('admin')"
+              class="px-3 py-1 rounded-md text-xs font-semibold transition-colors whitespace-nowrap shrink-0 cursor-pointer text-[#F7F6F1]/75 hover:text-[#E6C35C]"
+            >
+              Modo Colectivo Admin
+            </button>
+          </div>
+          <button
+            type="button"
+            id="admin-quick-btn"
+            onclick="window.openQuickAdminModal()"
+            class="hidden px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#D4AF37] text-[#0D100E] hover:bg-[#E6C35C] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+          >
+            + Gestión Rápida
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <!-- MODULE 1: MAPA INTERACTIVO -->
+      <section id="view-mapa" aria-labelledby="mapa-heading" class="space-y-6">
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-[#161B18]/12 pb-5">
+          <div class="max-w-2xl">
+            <p class="text-xs font-semibold tracking-wider text-[#2D6A4F] mb-1">
+              Plano cenital digitalizado · Escala de campo
+            </p>
+            <h1 id="mapa-heading" class="font-display text-3xl sm:text-4xl font-bold text-[#0D100E] leading-tight" style="text-wrap: balance;">
+              Mapa Interactivo del Huerto Comunitario
+            </h1>
+            <p class="text-sm sm:text-base text-[#161B18]/75 mt-1.5">
+              Pasa el cursor o toca cualquier círculo o cuadrante para trazar sus especies. Haz clic para abrir la ficha de parcela, fotografías actuales y código QR.
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              id="btn-mode-lines"
+              onclick="window.setMapMode('lines')"
+              class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold border transition-colors whitespace-nowrap cursor-pointer bg-[#0D100E] text-[#E6C35C] border-[#D4AF37]"
+            >
+              Líneas por Zona (Interactivo)
+            </button>
+            <button
+              type="button"
+              id="btn-mode-markers"
+              onclick="window.setMapMode('markers')"
+              class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold border transition-colors whitespace-nowrap cursor-pointer bg-white text-[#161B18] border-[#161B18]/20 hover:border-[#D4AF37]"
+            >
+              Mostrar los 35 Marcadores (#1 al #35)
+            </button>
+          </div>
+        </div>
+
+        <!-- Category Filter Strip -->
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filtro por categoría botánica">
+            <button type="button" onclick="window.setMapCategory('Todas')" data-map-cat="Todas" class="map-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#1B4332] text-white cursor-pointer">Todas</button>
+            <button type="button" onclick="window.setMapCategory('Medicinal')" data-map-cat="Medicinal" class="map-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-[#161B18]/15 text-[#161B18] hover:border-[#2D6A4F] cursor-pointer">Medicinal</button>
+            <button type="button" onclick="window.setMapCategory('Comestible')" data-map-cat="Comestible" class="map-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-[#161B18]/15 text-[#161B18] hover:border-[#2D6A4F] cursor-pointer">Comestible</button>
+            <button type="button" onclick="window.setMapCategory('Polinizadora')" data-map-cat="Polinizadora" class="map-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-[#161B18]/15 text-[#161B18] hover:border-[#2D6A4F] cursor-pointer">Polinizadora</button>
+            <button type="button" onclick="window.setMapCategory('Árbol')" data-map-cat="Árbol" class="map-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-[#161B18]/15 text-[#161B18] hover:border-[#2D6A4F] cursor-pointer">Árbol</button>
+            <button type="button" onclick="window.setMapCategory('Aromática')" data-map-cat="Aromática" class="map-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-[#161B18]/15 text-[#161B18] hover:border-[#2D6A4F] cursor-pointer">Aromática</button>
+          </div>
+          <div id="map-hover-readout" class="text-xs font-medium text-[#161B18]/75 tabular-nums">
+            Zona activa: Ninguna · Pasa o toca una parcela para inspeccionar
+          </div>
+        </div>
+
+        <!-- SVG Map Card -->
+        <div class="bg-[#0D100E] rounded-2xl p-2.5 sm:p-4 border border-[#D4AF37]/40 shadow-lg">
+          <div class="relative w-full">
+            <svg
+              id="huerto-svg"
+              viewBox="0 0 1120 680"
+              class="w-full h-auto max-h-[68vh] mx-auto select-none rounded-xl bg-[#F2EFE4]"
+              role="img"
+              aria-label="Mapa cenital interactivo de las 13 zonas del Huerto Comunitario del CUCSH"
+            >
+              <defs>
+                <radialGradient id="soilGrad" cx="50%" cy="50%" r="70%">
+                  <stop offset="0%" stop-color="#3F3224" />
+                  <stop offset="100%" stop-color="#292017" />
+                </radialGradient>
+                <radialGradient id="bedGreen" cx="45%" cy="40%" r="75%">
+                  <stop offset="0%" stop-color="#2D6A4F" />
+                  <stop offset="100%" stop-color="#1B4332" />
+                </radialGradient>
+                <radialGradient id="canopyGrad" cx="40%" cy="35%" r="70%">
+                  <stop offset="0%" stop-color="#52B788" />
+                  <stop offset="65%" stop-color="#2D6A4F" />
+                  <stop offset="100%" stop-color="#1B4332" />
+                </radialGradient>
+                <linearGradient id="goldRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#E6C35C" />
+                  <stop offset="50%" stop-color="#D4AF37" />
+                  <stop offset="100%" stop-color="#B08922" />
+                </linearGradient>
+                <pattern id="pathPebble" width="24" height="24" patternUnits="userSpaceOnUse">
+                  <rect width="24" height="24" fill="#EAE4D3" />
+                  <circle cx="6" cy="7" r="1.2" fill="#D5CCB6" />
+                  <circle cx="17" cy="14" r="1" fill="#CFC5AE" />
+                  <circle cx="10" cy="20" r="1.1" fill="#D8D0BC" />
+                </pattern>
+              </defs>
+
+              <!-- Garden Ground & Perimeter Foliage Border -->
+              <rect x="0" y="0" width="1120" height="680" rx="14" fill="url(#pathPebble)" />
+              <rect x="148" y="42" width="824" height="596" rx="16" fill="#F6F3E9" stroke="#C5BCA4" stroke-width="2" />
+
+              <!-- Outer Perimeter Vegetation Frame (matching poster greenery) -->
+              <g opacity="0.88" pointer-events="none">
+                <path d="M148 54 Q210 30 280 50 Q350 28 420 48 Q490 30 560 48 Q630 28 700 48 Q770 30 840 48 Q910 32 972 54 L972 72 L148 72 Z" fill="#2D6A4F" opacity="0.35" />
+                <path d="M148 626 Q220 606 300 626 Q380 608 460 626 Q540 606 620 626 Q700 608 780 626 Q860 608 972 626 L972 638 L148 638 Z" fill="#1B4332" opacity="0.32" />
+                <circle cx="170" cy="58" r="14" fill="#52B788" opacity="0.55" />
+                <circle cx="950" cy="58" r="16" fill="#2D6A4F" opacity="0.55" />
+                <circle cx="172" cy="620" r="15" fill="#2D6A4F" opacity="0.5" />
+                <circle cx="952" cy="618" r="14" fill="#52B788" opacity="0.5" />
+              </g>
+
+              <!-- Compass & Entrance Arrows (West & South entrances matching poster) -->
+              <g pointer-events="none" font-size="10.5" font-weight="700" fill="#1B4332">
+                <text x="278" y="62" fill="#161B18" opacity="0.65" letter-spacing="1.4">NORTE · FILA SUPERIOR</text>
+                <text x="304" y="618" fill="#161B18" opacity="0.65" letter-spacing="1.4">SUR · CORREDOR PRINCIPAL</text>
+                <!-- West Access Arrow -->
+                <path d="M126 392 L152 392 L152 385 L164 396 L152 407 L152 400 L126 400 Z" fill="#D4AF37" stroke="#0D100E" stroke-width="1.2" />
+                <text x="144" y="378" text-anchor="middle" font-size="9.5" fill="#0D100E">ACCESO</text>
+                <!-- North Path Arrow -->
+                <path d="M238 50 L254 50 L254 44 L265 53 L254 62 L254 56 L238 56 Z" fill="#52B788" opacity="0.8" />
+                <!-- Compass Rose -->
+                <g transform="translate(932, 86)">
+                  <circle r="15" fill="#0D100E" stroke="#D4AF37" stroke-width="1.2" />
+                  <path d="M0 -11 L3.5 0 L0 11 L-3.5 0 Z" fill="#D4AF37" />
+                  <text x="0" y="-18" text-anchor="middle" font-size="9" fill="#0D100E" font-weight="700">N</text>
+                </g>
+              </g>
+
+              <!-- 13 GARDEN ZONES -->
+              <g id="svg-zones-layer">
+                <!-- 1. PLANTAS MEDICINALES (Oeste Superior) -->
+                <g id="zone-plantas-medicinales" data-zone="plantas-medicinales" class="zone-shape" role="button" tabindex="0" aria-label="Zona Plantas Medicinales">
+                  <rect x="166" y="80" width="114" height="278" rx="12" fill="url(#bedGreen)" stroke="#161B18" stroke-width="2.2" class="zone-contour" />
+                  <rect x="174" y="88" width="98" height="262" rx="8" fill="none" stroke="#52B788" stroke-width="1" stroke-dasharray="4 4" opacity="0.55" />
+                  <circle cx="198" cy="146" r="14" fill="#52B788" opacity="0.45" />
+                  <circle cx="240" cy="212" r="18" fill="#40916C" opacity="0.55" />
+                  <circle cx="204" cy="285" r="16" fill="#74C69D" opacity="0.45" />
+                  <text x="223" y="210" text-anchor="middle" fill="#F7F6F1" font-size="12" font-weight="700">PLANTAS</text>
+                  <text x="223" y="226" text-anchor="middle" fill="#E6C35C" font-size="12" font-weight="700">MEDICINALES</text>
+                </g>
+
+                <!-- 2. BIODIGESTORES Y COMPOSTA (Oeste Inferior) -->
+                <g id="zone-biodigestores" data-zone="biodigestores" class="zone-shape" role="button" tabindex="0" aria-label="Zona Biodigestores y Composta">
+                  <rect x="166" y="424" width="114" height="172" rx="12" fill="#D9C7AC" stroke="#161B18" stroke-width="2.2" class="zone-contour" />
+                  <rect x="175" y="433" width="96" height="154" rx="8" fill="#EFE4D2" stroke="#8C6D46" stroke-width="1" />
+                  <!-- 2 Anaerobic Biodigester Circles -->
+                  <circle cx="204" cy="480" r="21" fill="#161B18" stroke="#D4AF37" stroke-width="2" />
+                  <circle cx="204" cy="480" r="11" fill="#2D6A4F" />
+                  <circle cx="244" cy="526" r="21" fill="#161B18" stroke="#D4AF37" stroke-width="2" />
+                  <circle cx="244" cy="526" r="11" fill="#2D6A4F" />
+                  <rect x="182" y="556" width="82" height="22" rx="4" fill="#5C4428" opacity="0.85" />
+                  <text x="223" y="451" text-anchor="middle" fill="#0D100E" font-size="10.5" font-weight="700">BIODIGESTORES</text>
+                  <text x="223" y="571" text-anchor="middle" fill="#F7F6F1" font-size="9.5" font-weight="700">COMPOSTA</text>
+                </g>
+
+                <!-- 3. CÍRCULO 5 (Norte Izquierda) -->
+                <g id="zone-circulo-5" data-zone="circulo-5" class="zone-shape" role="button" tabindex="0" aria-label="Zona Círculo 5">
+                  <circle cx="352" cy="162" r="54" fill="#EFE6D5" stroke="#1B4332" stroke-width="2.4" class="zone-contour" />
+                  <circle cx="352" cy="162" r="44" fill="#E3D9C1" stroke="#52B788" stroke-width="1.2" stroke-dasharray="3 3" />
+                  <circle cx="336" cy="150" r="10" fill="#52B788" opacity="0.7" />
+                  <circle cx="368" cy="172" r="11" fill="#2D6A4F" opacity="0.65" />
+                  <text x="352" y="166" text-anchor="middle" fill="#0D100E" font-size="12" font-weight="700">Círculo 5</text>
+                </g>
+
+                <!-- 4. FOSA 1 (Cama vertical de infiltración entre Círculo 5 y Círculo 6) -->
+                <g id="zone-fosa-1" data-zone="fosa-1" class="zone-shape" role="button" tabindex="0" aria-label="Zona Fosa 1">
+                  <rect x="424" y="84" width="60" height="156" rx="10" fill="url(#bedGreen)" stroke="#161B18" stroke-width="2.2" class="zone-contour" />
+                  <rect x="431" y="92" width="46" height="140" rx="6" fill="none" stroke="#74C69D" stroke-width="1" stroke-dasharray="3 3" opacity="0.65" />
+                  <circle cx="454" cy="128" r="12" fill="#52B788" opacity="0.65" />
+                  <circle cx="454" cy="196" r="12" fill="#40916C" opacity="0.65" />
+                  <text x="454" y="166" text-anchor="middle" fill="#F7F6F1" font-size="12" font-weight="700">Fosa 1</text>
+                </g>
+
+                <!-- 5. CÍRCULO 6 (Policultivo con surcos curvos) -->
+                <g id="zone-circulo-6" data-zone="circulo-6" class="zone-shape" role="button" tabindex="0" aria-label="Zona Círculo 6">
+                  <circle cx="556" cy="162" r="54" fill="url(#soilGrad)" stroke="#1B4332" stroke-width="2.4" class="zone-contour" />
+                  <path d="M510 144 Q556 124 602 144" fill="none" stroke="#52B788" stroke-width="8" stroke-linecap="round" opacity="0.78" />
+                  <path d="M506 164 Q556 146 606 164" fill="none" stroke="#74C69D" stroke-width="7" stroke-linecap="round" opacity="0.7" />
+                  <path d="M512 184 Q556 168 600 184" fill="none" stroke="#2D6A4F" stroke-width="8" stroke-linecap="round" opacity="0.85" />
+                  <rect x="520" y="152" width="72" height="20" rx="6" fill="#0D100E" opacity="0.78" />
+                  <text x="556" y="166" text-anchor="middle" fill="#E6C35C" font-size="12" font-weight="700">Círculo 6</text>
+                </g>
+
+                <!-- 6. CÍRCULO 7 (Dosel arbóreo de Guamúchil) -->
+                <g id="zone-circulo-7" data-zone="circulo-7" class="zone-shape" role="button" tabindex="0" aria-label="Zona Círculo 7">
+                  <circle cx="688" cy="162" r="56" fill="url(#bedGreen)" stroke="#161B18" stroke-width="2.4" class="zone-contour" />
+                  <circle cx="670" cy="144" r="24" fill="url(#canopyGrad)" stroke="#0D100E" stroke-width="1" opacity="0.9" />
+                  <circle cx="708" cy="154" r="22" fill="url(#canopyGrad)" stroke="#0D100E" stroke-width="1" opacity="0.88" />
+                  <circle cx="684" cy="184" r="20" fill="#52B788" opacity="0.75" />
+                  <rect x="652" y="152" width="72" height="20" rx="6" fill="#0D100E" opacity="0.8" />
+                  <text x="688" y="166" text-anchor="middle" fill="#E6C35C" font-size="12" font-weight="700">Círculo 7</text>
+                </g>
+
+                <!-- 7. CÍRCULO 8 (4 subcuadrantes con senderos en cruz) -->
+                <g id="zone-circulo-8" data-zone="circulo-8" class="zone-shape" role="button" tabindex="0" aria-label="Zona Círculo 8">
+                  <circle cx="818" cy="162" r="54" fill="url(#bedGreen)" stroke="#161B18" stroke-width="2.4" class="zone-contour" />
+                  <!-- Cross paths -->
+                  <rect x="811" y="109" width="14" height="106" fill="#E9DFC9" />
+                  <rect x="765" y="155" width="106" height="14" fill="#E9DFC9" />
+                  <circle cx="792" cy="136" r="12" fill="#52B788" opacity="0.6" />
+                  <circle cx="844" cy="188" r="12" fill="#74C69D" opacity="0.55" />
+                  <rect x="783" y="152" width="70" height="20" rx="6" fill="#0D100E" opacity="0.85" />
+                  <text x="818" y="166" text-anchor="middle" fill="#E6C35C" font-size="12" font-weight="700">Círculo 8</text>
+                </g>
+
+                <!-- 8. CÍRCULO 1 (Sur-Centro Izquierda) -->
+                <g id="zone-circulo-1" data-zone="circulo-1" class="zone-shape" role="button" tabindex="0" aria-label="Zona Círculo 1">
+                  <circle cx="358" cy="368" r="56" fill="#EDE4D0" stroke="#1B4332" stroke-width="2.4" class="zone-contour" />
+                  <circle cx="332" cy="348" r="24" fill="url(#canopyGrad)" opacity="0.88" />
+                  <circle cx="378" cy="388" r="14" fill="#52B788" opacity="0.55" />
+                  <rect x="323" y="358" width="70" height="20" rx="6" fill="#0D100E" opacity="0.82" />
+                  <text x="358" y="372" text-anchor="middle" fill="#E6C35C" font-size="12" font-weight="700">Círculo 1</text>
+                </g>
+
+                <!-- 9. CÍRCULO 2 (Maguey Pulquero Central) -->
+                <g id="zone-circulo-2" data-zone="circulo-2" class="zone-shape" role="button" tabindex="0" aria-label="Zona Círculo 2">
+                  <circle cx="504" cy="368" r="56" fill="#EFE6D5" stroke="#1B4332" stroke-width="2.4" class="zone-contour" />
+                  <!-- Maguey Rosette Illustration -->
+                  <g transform="translate(504, 356)">
+                    <path d="M0 -24 L5 -5 L24 -10 L8 2 L20 18 L2 8 L0 26 L-4 8 L-21 16 L-8 2 L-24 -11 L-5 -5 Z" fill="#2D6A4F" stroke="#0D100E" stroke-width="0.9" />
+                    <circle r="4.5" fill="#52B788" />
+                  </g>
+                  <rect x="469" y="384" width="70" height="20" rx="6" fill="#0D100E" opacity="0.85" />
+                  <text x="504" y="398" text-anchor="middle" fill="#E6C35C" font-size="12" font-weight="700">Círculo 2</text>
+                </g>
+
+                <!-- 10. CÍRCULO POLINIZADOR (Santuario Central con Anillo Floral Dorado) -->
+                <g id="zone-circulo-polinizador" data-zone="circulo-polinizador" class="zone-shape" role="button" tabindex="0" aria-label="Zona Círculo Polinizador">
+                  <circle cx="658" cy="368" r="60" fill="#234F3A" stroke="url(#goldRingGrad)" stroke-width="4.5" class="zone-contour" />
+                  <circle cx="658" cy="368" r="46" fill="none" stroke="#E6C35C" stroke-width="5.5" stroke-dasharray="6 7" opacity="0.92" />
+                  <circle cx="658" cy="368" r="34" fill="#F2E6C9" stroke="#D4AF37" stroke-width="1.5" />
+                  <!-- Pollinator flower petals -->
+                  <circle cx="638" cy="332" r="4" fill="#F59E0B" />
+                  <circle cx="684" cy="336" r="4" fill="#E6C35C" />
+                  <circle cx="694" cy="378" r="4" fill="#F59E0B" />
+                  <circle cx="624" cy="384" r="4" fill="#E6C35C" />
+                  <text x="658" y="364" text-anchor="middle" fill="#0D100E" font-size="11" font-weight="700">Círculo</text>
+                  <text x="658" y="378" text-anchor="middle" fill="#1B4332" font-size="11" font-weight="700">Polinizador</text>
+                </g>
+
+                <!-- 11. CÍRCULO 4 (4 subcuadrantes con senderos en cruz) -->
+                <g id="zone-circulo-4" data-zone="circulo-4" class="zone-shape" role="button" tabindex="0" aria-label="Zona Círculo 4">
+                  <circle cx="812" cy="368" r="56" fill="url(#bedGreen)" stroke="#161B18" stroke-width="2.4" class="zone-contour" />
+                  <rect x="805" y="313" width="14" height="110" fill="#E9DFC9" />
+                  <rect x="757" y="361" width="110" height="14" fill="#E9DFC9" />
+                  <circle cx="776" cy="332" r="18" fill="url(#canopyGrad)" stroke="#0D100E" stroke-width="0.9" />
+                  <rect x="777" y="358" width="70" height="20" rx="6" fill="#0D100E" opacity="0.85" />
+                  <text x="812" y="372" text-anchor="middle" fill="#E6C35C" font-size="12" font-weight="700">Círculo 4</text>
+                </g>
+
+                <!-- 12. CUADRANTE 3 (Corredor Inferior Sur Horizontal Largo) -->
+                <g id="zone-cuadrante-3" data-zone="cuadrante-3" class="zone-shape" role="button" tabindex="0" aria-label="Zona Cuadrante 3">
+                  <rect x="302" y="486" width="566" height="106" rx="14" fill="url(#bedGreen)" stroke="#161B18" stroke-width="2.4" class="zone-contour" />
+                  <rect x="312" y="495" width="546" height="88" rx="10" fill="none" stroke="#52B788" stroke-width="1" stroke-dasharray="5 5" opacity="0.55" />
+                  <circle cx="348" cy="542" r="18" fill="#52B788" opacity="0.48" />
+                  <circle cx="470" cy="534" r="20" fill="#40916C" opacity="0.52" />
+                  <circle cx="628" cy="546" r="18" fill="#E6C35C" opacity="0.32" />
+                  <circle cx="812" cy="536" r="22" fill="url(#canopyGrad)" opacity="0.72" />
+                  <rect x="520" y="527" width="130" height="24" rx="7" fill="#0D100E" opacity="0.84" />
+                  <text x="585" y="543" text-anchor="middle" fill="#E6C35C" font-size="13" font-weight="700">Cuadrante 3</text>
+                </g>
+
+                <!-- 13. CUADRANTE 9 (Columna Derecha Este Vertical Larga) -->
+                <g id="zone-cuadrante-9" data-zone="cuadrante-9" class="zone-shape" role="button" tabindex="0" aria-label="Zona Cuadrante 9">
+                  <rect x="892" y="112" width="66" height="480" rx="12" fill="#EFE4CE" stroke="#1B4332" stroke-width="2.4" class="zone-contour" />
+                  <rect x="900" y="122" width="50" height="460" rx="8" fill="none" stroke="#8C6D46" stroke-width="1" stroke-dasharray="4 4" opacity="0.5" />
+                  <circle cx="925" cy="192" r="14" fill="#52B788" opacity="0.45" />
+                  <circle cx="925" cy="272" r="16" fill="#2D6A4F" opacity="0.45" />
+                  <text x="925" y="358" text-anchor="middle" fill="#0D100E" font-size="12" font-weight="700" transform="rotate(-90 925 358)">Cuadrante 9</text>
+                </g>
+              </g>
+
+              <!-- Dynamic Markers Layer (for 35-marker mode) -->
+              <g id="svg-markers-layer"></g>
+
+              <!-- Dynamic Animated Leader Lines & Callout Labels Layer -->
+              <g id="svg-leaders-layer"></g>
+            </svg>
+          </div>
+
+          <!-- Map Legend & Quick Zone Pills -->
+          <div class="mt-3 pt-3 border-t border-[#D4AF37]/20 flex flex-wrap items-center justify-between gap-3 text-xs text-[#F7F6F1]/85">
+            <div class="flex flex-wrap items-center gap-4">
+              <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#52B788] inline-block"></span>Comestible</span>
+              <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#38BDF8] inline-block"></span>Medicinal</span>
+              <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#E6C35C] inline-block"></span>Polinizadora</span>
+              <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#2D6A4F] border border-[#E6C35C] inline-block"></span>Árbol</span>
+              <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#C084FC] inline-block"></span>Aromática</span>
+            </div>
+            <span class="text-[#E6C35C] tabular-nums" id="map-stats-summary">13 zonas activas · 36 puntos de registro</span>
+          </div>
+        </div>
+
+        <!-- Mobile / Accessible Quick Zone Selector Cards -->
+        <div>
+          <h2 class="text-sm font-semibold text-[#0D100E] mb-2.5">Acceso directo a las 13 zonas del plano</h2>
+          <div id="zone-quick-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5"></div>
+        </div>
+      </section>
+
+      <!-- MODULE 2: FICHAS BOTÁNICAS, GALERÍA Y PLACAS QR -->
+      <section id="view-fichas" aria-labelledby="fichas-heading" class="hidden space-y-6">
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-[#161B18]/12 pb-5">
+          <div>
+            <p class="text-xs font-semibold tracking-wider text-[#2D6A4F] mb-1">
+              Catálogo vivo · Archivo fotográfico evolutivo · Estacas QR
+            </p>
+            <h1 id="fichas-heading" class="font-display text-3xl sm:text-4xl font-bold text-[#0D100E] leading-tight">
+              Fichas Botánicas y Placas QR
+            </h1>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="window.setFichasSubView('catalog')" id="subview-btn-catalog" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-[#0D100E] text-[#E6C35C] border border-[#D4AF37] cursor-pointer">
+              Catálogo (24 Especies)
+            </button>
+            <button type="button" onclick="window.setFichasSubView('qr-plaques')" id="subview-btn-plaques" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-white text-[#161B18] border border-[#161B18]/20 hover:border-[#D4AF37] cursor-pointer">
+              Placas Físicas QR
+            </button>
+            <button type="button" id="btn-new-species" onclick="window.openSpeciesFormModal(null)" class="hidden gold-gradient-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-[#0D100E] cursor-pointer">
+              + Nueva Especie
+            </button>
+          </div>
+        </div>
+
+        <!-- Search & Filter Bar -->
+        <div id="fichas-filter-bar" class="bg-white rounded-xl p-4 border border-[#161B18]/12 shadow-sm grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+          <div class="md:col-span-5">
+            <label for="fichas-search" class="block text-xs font-semibold text-[#161B18]/75 mb-1">
+              Buscar por nombre común, científico, propiedad o marcador (#1 a #35)
+            </label>
+            <input
+              id="fichas-search"
+              type="search"
+              placeholder="Ej. Maracuyá, Passiflora, digestiva, #7, #33b..."
+              oninput="window.handleSpeciesSearch()"
+              class="w-full px-3.5 py-2.5 rounded-lg border border-[#161B18]/20 bg-[#F7F6F1] text-sm focus:outline-none focus:border-[#D4AF37]"
+            />
+          </div>
+          <div class="md:col-span-3">
+            <label for="fichas-zone-filter" class="block text-xs font-semibold text-[#161B18]/75 mb-1">Filtrar por zona</label>
+            <select
+              id="fichas-zone-filter"
+              onchange="window.handleSpeciesSearch()"
+              class="w-full px-3 py-2.5 rounded-lg border border-[#161B18]/20 bg-[#F7F6F1] text-sm focus:outline-none focus:border-[#D4AF37]"
+            >
+              <option value="Todas">Todas las 13 zonas</option>
+            </select>
+          </div>
+          <div class="md:col-span-4">
+            <label for="fichas-cat-filter" class="block text-xs font-semibold text-[#161B18]/75 mb-1">Filtrar por uso / categoría</label>
+            <select
+              id="fichas-cat-filter"
+              onchange="window.handleSpeciesSearch()"
+              class="w-full px-3 py-2.5 rounded-lg border border-[#161B18]/20 bg-[#F7F6F1] text-sm focus:outline-none focus:border-[#D4AF37]"
+            >
+              <option value="Todas">Todas las categorías</option>
+              <option value="Comestible">Comestible</option>
+              <option value="Medicinal">Medicinal</option>
+              <option value="Polinizadora">Polinizadora</option>
+              <option value="Árbol">Árbol</option>
+              <option value="Aromática">Aromática</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Catalog Grid -->
+        <div id="fichas-catalog-container">
+          <div id="fichas-count-line" class="text-xs font-medium text-[#161B18]/70 mb-3 tabular-nums"></div>
+          <div id="species-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+        </div>
+
+        <!-- Printable Physical QR Plaques View -->
+        <div id="fichas-plaques-container" class="hidden space-y-4">
+          <div id="no-print-controls" class="bg-[#161B18] text-[#F7F6F1] rounded-xl p-4 border border-[#D4AF37]/30 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="font-display text-xl font-bold text-[#E6C35C]">Placas Físicas QR para Estacas del Huerto</h2>
+              <p class="text-xs text-[#F7F6F1]/75">Cada código QR apunta directamente al hash móvil (#ficha/especie) sin depender de servidores externos.</p>
+            </div>
+            <button type="button" onclick="window.print()" class="gold-gradient-btn px-4 py-2 rounded-lg text-xs font-semibold cursor-pointer">
+              Imprimir Todas las Placas
+            </button>
+          </div>
+          <div id="qr-plaques-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+        </div>
+      </section>
+
+      <!-- MODULE 3: TABLERO KANBAN, BITÁCORA, AVISOS Y VITRINA INSTAGRAM -->
+      <section id="view-tablero" aria-labelledby="tablero-heading" class="hidden space-y-8">
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-[#161B18]/12 pb-5">
+          <div>
+            <p class="text-xs font-semibold tracking-wider text-[#2D6A4F] mb-1">
+              Operación colectiva · Trazabilidad agrícola · Comunidad
+            </p>
+            <h1 id="tablero-heading" class="font-display text-3xl sm:text-4xl font-bold text-[#0D100E] leading-tight">
+              Tablero de Tareas, Bitácora y Comunidad
+            </h1>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="window.openTaskModal()" class="gold-gradient-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold border border-[#0D100E] cursor-pointer">
+              + Nueva Tarea
+            </button>
+            <button type="button" onclick="window.openBitacoraModal(null, null)" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-[#1B4332] text-[#F7F6F1] hover:bg-[#2D6A4F] cursor-pointer">
+              + Registrar Cuidado
+            </button>
+            <button type="button" id="btn-new-notice" onclick="window.openNoticeModal()" class="hidden px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-[#0D100E] text-[#E6C35C] border border-[#D4AF37] cursor-pointer">
+              + Publicar Aviso
+            </button>
+          </div>
+        </div>
+
+        <!-- Kanban Filters -->
+        <div class="bg-white rounded-xl p-4 border border-[#161B18]/12 flex flex-wrap items-center gap-3">
+          <div class="flex-1 min-w-[200px]">
+            <label for="kanban-cat-filter" class="block text-xs font-semibold text-[#161B18]/70 mb-1">Categoría de labor</label>
+            <select id="kanban-cat-filter" onchange="window.renderKanbanBoard()" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-[#F7F6F1] text-sm">
+              <option value="Todas">Todas las labores</option>
+              <option value="Mantenimiento Botánico y Riego">Mantenimiento Botánico y Riego</option>
+              <option value="Señalética y Placas QR en Campo">Señalética y Placas QR en Campo</option>
+              <option value="Biodigestores y Composta">Biodigestores y Composta</option>
+              <option value="Talleres y Voluntariado">Talleres y Voluntariado</option>
+            </select>
+          </div>
+          <div class="flex-1 min-w-[200px]">
+            <label for="kanban-zone-filter" class="block text-xs font-semibold text-[#161B18]/70 mb-1">Zona del huerto</label>
+            <select id="kanban-zone-filter" onchange="window.renderKanbanBoard()" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-[#F7F6F1] text-sm">
+              <option value="Todas">Todas las zonas</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 4-Column Kanban Board -->
+        <div id="kanban-board" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"></div>
+
+        <!-- Bitácora Digital + Tablón Comunitario -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-7 bg-white rounded-2xl p-5 border border-[#161B18]/12 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 class="font-display text-2xl font-bold text-[#0D100E]">Bitácora Digital de Mantenimiento</h2>
+                <p class="text-xs text-[#161B18]/70">Registro histórico de riegos, composta, podas, trasplantes y placas QR.</p>
+              </div>
+              <select id="bitacora-type-filter" onchange="window.renderBitacora()" aria-label="Filtrar bitácora por labor" class="px-3 py-1.5 rounded-lg border border-[#161B18]/20 bg-[#F7F6F1] text-xs font-medium">
+                <option value="Todas">Todas las labores</option>
+                <option value="Riego">Riego</option>
+                <option value="Abono / Composta">Abono / Composta</option>
+                <option value="Poda">Poda</option>
+                <option value="Trasplante">Trasplante</option>
+                <option value="Control Biológico de Plagas">Control Biológico de Plagas</option>
+                <option value="Colocación Placa QR">Colocación Placa QR</option>
+              </select>
+            </div>
+            <div id="bitacora-list" class="divide-y divide-[#161B18]/10 max-h-[430px] overflow-y-auto pr-1"></div>
+          </div>
+
+          <div class="lg:col-span-5 bg-white rounded-2xl p-5 border border-[#161B18]/12 space-y-4">
+            <div>
+              <h2 class="font-display text-2xl font-bold text-[#0D100E]">Tablón Comunitario de Avisos</h2>
+              <p class="text-xs text-[#161B18]/70">Próximos talleres, jornadas de compostaje y voluntariados del colectivo.</p>
+            </div>
+            <div id="notices-list" class="space-y-3"></div>
+          </div>
+        </div>
+
+        <!-- VITRINA VISUAL LLAMATIVA DE INSTAGRAM (@huerto_comunitario_cucsh) -->
+        <section
+          id="instagram-vitrina"
+          aria-labelledby="ig-vitrina-heading"
+          class="scroll-mt-32 bg-[#0D100E] text-[#F7F6F1] rounded-2xl p-5 sm:p-8 border-2 border-[#D4AF37] shadow-xl space-y-6"
+        >
+          <!-- Profile Banner -->
+          <div class="bg-[#161B18] rounded-xl p-5 sm:p-6 border border-[#D4AF37]/40 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+            <div class="flex items-start sm:items-center gap-4">
+              <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#0D100E] border-2 border-[#D4AF37] flex items-center justify-center shrink-0">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#E6C35C" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-[#D4AF37] tracking-wide">Comunidad digital del huerto</p>
+                <h2 id="ig-vitrina-heading" class="font-display text-2xl sm:text-3xl font-bold text-[#E6C35C]">
+                  @huerto_comunitario_cucsh
+                </h2>
+                <p class="text-sm text-[#F7F6F1]/80 mt-1 max-w-2xl">
+                  Cosechas colectivas, jornadas de compostaje, floración de polinizadores y vida cotidiana en el Huerto Comunitario del CUCSH, Universidad de Guadalajara.
+                </p>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+              <a
+                href="https://www.instagram.com/huerto_comunitario_cucsh/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="gold-gradient-btn px-5 py-2.5 rounded-xl text-sm font-bold border border-[#E6C35C] shadow-md inline-flex items-center gap-2 whitespace-nowrap"
+              >
+                Seguir en Instagram (@huerto_comunitario_cucsh)
+              </a>
+              <button
+                type="button"
+                id="btn-edit-ig-links"
+                onclick="window.openInstagramEditModal()"
+                class="hidden px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-[#0D100E] text-[#E6C35C] border border-[#D4AF37]/50 hover:border-[#D4AF37] cursor-pointer"
+              >
+                ✏️ Cambiar enlaces de Instagram
+              </button>
+            </div>
+          </div>
+
+          <!-- Parallel Embedded Gallery Cards -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Card 1: Featured Post -->
+            <article class="bg-[#161B18] rounded-xl p-4 sm:p-5 border border-[#D4AF37]/60 shadow-lg flex flex-col justify-between gap-4">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <span class="text-xs font-semibold text-[#52B788]">Crónica de parcela</span>
+                  <h3 class="font-display text-xl font-bold text-[#E6C35C]">Publicación Destacada del Huerto</h3>
+                </div>
+                <span class="text-xs text-[#F7F6F1]/65 tabular-nums">@huerto_comunitario_cucsh</span>
+              </div>
+              <div class="rounded-lg overflow-hidden border border-[#D4AF37]/30 bg-[#0D100E] min-h-[420px]">
+                <iframe
+                  id="ig-post-iframe"
+                  src="https://www.instagram.com/p/DIXH4DzyO3G/embed"
+                  loading="lazy"
+                  title="Publicación destacada del Huerto Comunitario del CUCSH en Instagram"
+                  class="w-full h-[460px] border-0 bg-white"
+                  allowtransparency="true"
+                ></iframe>
+              </div>
+              <div class="flex items-center justify-between gap-3 pt-1">
+                <p class="text-xs text-[#F7F6F1]/70">Si tu red móvil bloquea vistas embebidas, ábrela directo:</p>
+                <a
+                  id="ig-post-fallback-link"
+                  href="https://www.instagram.com/p/DIXH4DzyO3G/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="px-4 py-2 rounded-lg text-xs font-semibold bg-[#0D100E] text-[#E6C35C] border border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0D100E] transition-colors whitespace-nowrap"
+                >
+                  Ver publicación en Instagram
+                </a>
+              </div>
+            </article>
+
+            <!-- Card 2: Featured Reel / Video -->
+            <article class="bg-[#161B18] rounded-xl p-4 sm:p-5 border border-[#D4AF37]/60 shadow-lg flex flex-col justify-between gap-4">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <span class="text-xs font-semibold text-[#E6C35C]">🎬 Video / Reel del Colectivo</span>
+                  <h3 class="font-display text-xl font-bold text-[#E6C35C]">Video / Reel en Acción</h3>
+                </div>
+                <span class="text-xs text-[#F7F6F1]/65 tabular-nums">@huerto_comunitario_cucsh</span>
+              </div>
+              <div class="rounded-lg overflow-hidden border border-[#D4AF37]/30 bg-[#0D100E] min-h-[420px]">
+                <iframe
+                  id="ig-reel-iframe"
+                  src="https://www.instagram.com/p/DC7uew9psx9/embed"
+                  loading="lazy"
+                  title="Video Reel del Colectivo Huerto Comunitario CUCSH en Instagram"
+                  class="w-full h-[460px] border-0 bg-white"
+                  allowtransparency="true"
+                ></iframe>
+              </div>
+              <div class="flex items-center justify-between gap-3 pt-1">
+                <p class="text-xs text-[#F7F6F1]/70">Reproduce el reel completo en la app oficial:</p>
+                <a
+                  id="ig-reel-fallback-link"
+                  href="https://www.instagram.com/p/DC7uew9psx9/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="px-4 py-2 rounded-lg text-xs font-semibold bg-[#0D100E] text-[#E6C35C] border border-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0D100E] transition-colors whitespace-nowrap"
+                >
+                  Ver video completo en Instagram
+                </a>
+              </div>
+            </article>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <!-- Minimalist Obsidian & Gold Footer -->
+    <footer class="bg-[#0D100E] text-[#D4AF37] border-t border-[#D4AF37]/30 py-5 px-4 text-center">
+      <p class="text-sm font-medium tracking-wide">El Huerto Comunitario del CUCSH - Universidad de Guadalajara</p>
+    </footer>
+
+    <!-- Modal Root -->
+    <div
+      id="modal-overlay"
+      class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+      onclick="window.handleModalBackdropClick(event)"
+    >
+      <div
+        id="modal-dialog"
+        class="bg-[#F7F6F1] text-[#161B18] w-full max-w-4xl rounded-2xl border-2 border-[#D4AF37] shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col"
+        onclick="event.stopPropagation()"
+      >
+        <div class="bg-[#0D100E] text-[#F7F6F1] px-5 py-3.5 border-b border-[#D4AF37]/40 flex items-center justify-between gap-4 shrink-0">
+          <h2 id="modal-title" class="font-display text-xl sm:text-2xl font-bold text-[#E6C35C] truncate">Detalle</h2>
+          <button
+            type="button"
+            onclick="window.closeModal()"
+            aria-label="Cerrar ventana"
+            class="w-10 h-10 rounded-lg bg-[#161B18] text-[#E6C35C] border border-[#D4AF37]/40 hover:bg-[#D4AF37] hover:text-[#0D100E] flex items-center justify-center text-lg font-bold cursor-pointer shrink-0"
+          >
+            ✕
+          </button>
+        </div>
+        <div id="modal-body" class="p-4 sm:p-6 overflow-y-auto space-y-5"></div>
+      </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" aria-live="polite" class="fixed bottom-5 right-5 z-[60] flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+    <script>
+      (function () {
+        'use strict';
+
+        const STORAGE_KEY = 'huerto_cucsh_udeg_state_v1';
+
+        const ZONES = [
+          {
+            id: 'plantas-medicinales',
+            name: 'Plantas Medicinales',
+            type: 'Cama rectangular vertical (Oeste superior)',
+            irrigation: '3 veces por semana (mañana temprana)',
+            sun: 'Sol directo 6–7 h / semisombra lateral',
+            coverage: '88%',
+            summary: 'Cama terapéutica con especies aromáticas, digestivas y de medicina tradicional mexicana en asociación con calabaza y nopal.',
+            anchor: { x: 223, y: 210 },
+            labelSide: 'left'
+          },
+          {
+            id: 'biodigestores',
+            name: 'Biodigestores y Composta',
+            type: 'Estación rectangular bioenergética (Oeste inferior)',
+            irrigation: 'Humedad controlada en pilas de compostaje (55%)',
+            sun: 'Semisombra ventilada',
+            coverage: '74%',
+            summary: 'Estación con 2 biodigestores anaeróbicos y bahías de compostaje que transforman residuos orgánicos del huerto en biol y abono maduro.',
+            anchor: { x: 223, y: 500 },
+            labelSide: 'left'
+          },
+          {
+            id: 'circulo-5',
+            name: 'Círculo 5',
+            type: 'Parcela circular (Fila Norte)',
+            irrigation: 'Cada 2 días (riego suave por goteo/regadera)',
+            sun: 'Sol pleno 7 h',
+            coverage: '78%',
+            summary: 'Parcela circular de hoja verde y aromáticas de ciclo rápido, con asociación de arúgula e hinojo.',
+            anchor: { x: 352, y: 162 },
+            labelSide: 'top'
+          },
+          {
+            id: 'fosa-1',
+            name: 'Fosa 1',
+            type: 'Cama vertical de infiltración (Norte)',
+            irrigation: 'Retención pluvial y riego suplementario semanal',
+            sun: 'Sol pleno 6–8 h',
+            coverage: '82%',
+            summary: 'Cama de infiltración hídrica entre Círculo 5 y Círculo 6 diseñada para captar escurrimientos y sostener especies rústicas como la capitana.',
+            anchor: { x: 454, y: 162 },
+            labelSide: 'top'
+          },
+          {
+            id: 'circulo-6',
+            name: 'Círculo 6',
+            type: 'Parcela circular de policultivo con surcos curvos',
+            irrigation: '3 veces por semana siguiendo curvas de nivel',
+            sun: 'Sol pleno 7–8 h',
+            coverage: '85%',
+            summary: 'Parcela demostrativa de policultivo en surcos curvos para optimizar retención de humedad y cobertura vegetal del suelo.',
+            anchor: { x: 556, y: 162 },
+            labelSide: 'top'
+          },
+          {
+            id: 'circulo-7',
+            name: 'Círculo 7',
+            type: 'Parcela circular con dosel arbóreo de Guamúchil',
+            irrigation: '2 veces por semana en cajete y sotobosque',
+            sun: 'Dosel filtrado / semisombra luminosa',
+            coverage: '91%',
+            summary: 'Sistema agroforestal dominado por dosel de Guamúchil fijador de nitrógeno en asociación con frijol trepador.',
+            anchor: { x: 688, y: 162 },
+            labelSide: 'top'
+          },
+          {
+            id: 'circulo-8',
+            name: 'Círculo 8',
+            type: 'Parcela circular dividida en 4 subcuadrantes',
+            irrigation: '3 veces por semana (foco en musáceas)',
+            sun: 'Sol pleno con sombra parcial de dosel',
+            coverage: '86%',
+            summary: 'Círculo dividido en cuatro subcuadrantes con senderos en cruz; integra platanar, guamúchil e hinojo aromático.',
+            anchor: { x: 818, y: 162 },
+            labelSide: 'top'
+          },
+          {
+            id: 'circulo-1',
+            name: 'Círculo 1',
+            type: 'Parcela circular (Sur-Centro)',
+            irrigation: '2–3 veces por semana',
+            sun: 'Semisombra oeste y sol de mediodía',
+            coverage: '80%',
+            summary: 'Parcela de transición junto al acceso oeste y estación de biodigestores; alberga cobertura perenne y borde medicinal.',
+            anchor: { x: 358, y: 368 },
+            labelSide: 'left'
+          },
+          {
+            id: 'circulo-2',
+            name: 'Círculo 2',
+            type: 'Parcela circular con Maguey Pulquero central',
+            irrigation: '1 vez por semana (zona seca / baja demanda)',
+            sun: 'Sol pleno 8 h',
+            coverage: '72%',
+            summary: 'Parcela xerófila presidida por un Maguey Pulquero central acompañado de frijol fijador de nitrógeno en su perímetro.',
+            anchor: { x: 504, y: 368 },
+            labelSide: 'bottom'
+          },
+          {
+            id: 'circulo-polinizador',
+            name: 'Círculo Polinizador',
+            type: 'Santuario circular central con anillo floral dorado',
+            irrigation: '3 veces por semana (riego matutino sin mojar flor)',
+            sun: 'Sol pleno 8+ h',
+            coverage: '94%',
+            summary: 'Núcleo ecológico del huerto que atrae abejas nativas, colibríes y mariposas monarca mediante floración escalonada anual.',
+            anchor: { x: 658, y: 368 },
+            labelSide: 'top'
+          },
+          {
+            id: 'circulo-4',
+            name: 'Círculo 4',
+            type: 'Parcela circular dividida en 4 subcuadrantes',
+            irrigation: '3 veces por semana',
+            sun: 'Sol pleno con sombra norte de guamúchil',
+            coverage: '84%',
+            summary: 'Parcela en cruz de cuatro subcuadrantes con guamúchil protector en el borde norte y cempasúchil para control biológico.',
+            anchor: { x: 812, y: 368 },
+            labelSide: 'right'
+          },
+          {
+            id: 'cuadrante-3',
+            name: 'Cuadrante 3',
+            type: 'Corredor rectangular horizontal largo (Sur)',
+            irrigation: '3–4 veces por semana (riego profundo en franja)',
+            sun: 'Sol pleno a semisombra en frutales',
+            coverage: '92%',
+            summary: 'Corredor productivo sur con mayor diversidad del huerto: frutales tropicales y templados, enredaderas de maracuyá, medicinales y franja polinizadora.',
+            anchor: { x: 585, y: 540 },
+            labelSide: 'bottom'
+          },
+          {
+            id: 'cuadrante-9',
+            name: 'Cuadrante 9',
+            type: 'Cama rectangular vertical larga (Este)',
+            irrigation: '3 veces por semana',
+            sun: 'Sol de mañana y tarde templada',
+            coverage: '76%',
+            summary: 'Cama larga en el extremo oriental dedicada a hortalizas culinarias de consumo comunitario como perejil y calabaza.',
+            anchor: { x: 925, y: 352 },
+            labelSide: 'right'
+          }
+        ];
+
+        const DEFAULT_SPECIES = [
+          {
+            id: 'maracuya',
+            commonName: 'Maracuyá',
+            scientificName: 'Passiflora edulis',
+            family: 'Passifloraceae',
+            origin: 'Sudamérica tropical (cultivo naturalizado en Jalisco)',
+            category: 'Comestible',
+            markers: ['#1', '#4', '#16', '#33b'],
+            zoneIds: ['cuadrante-3', 'plantas-medicinales'],
+            water: 'Moderado a alto en floración y llenado de fruto (3x/semana)',
+            sun: 'Sol pleno con soporte de espaldera',
+            cycle: 'Perenne trepadora',
+            properties: 'Fruto comestible rico en vitamina C, antioxidantes y fibra; sus hojas se emplean tradicionalmente en infusión calmante suave.',
+            care: 'Guiar zarcillos sobre malla o tutores, realizar poda de formación tras cosecha y acolchar la base con composta madura.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'papaya',
+            commonName: 'Papaya',
+            scientificName: 'Carica papaya',
+            family: 'Caricaceae',
+            origin: 'Mesoamérica',
+            category: 'Comestible',
+            markers: ['#2', '#5'],
+            zoneIds: ['cuadrante-3'],
+            water: 'Moderado constante sin encharcamiento (2–3x/semana)',
+            sun: 'Sol pleno protegido de vientos fuertes',
+            cycle: 'Perenne de vida corta (3–5 años)',
+            properties: 'Fruto fresco rico en papaína (enzima digestiva), betacarotenos y vitamina C.',
+            care: 'Aplicar humus o abono rico en potasio cada 6 semanas; vigilar drenaje alrededor del cuello del tallo.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'hoja-santa',
+            commonName: 'Hoja Santa / Acuyo',
+            scientificName: 'Piper auritum',
+            family: 'Piperaceae',
+            origin: 'Mesoamérica',
+            category: 'Medicinal',
+            markers: ['#3'],
+            zoneIds: ['cuadrante-3'],
+            water: 'Alto / suelo húmedo bien drenado (3–4x/semana)',
+            sun: 'Semisombra luminosa o sol suave de mañana',
+            cycle: 'Perenne rizomatosa',
+            properties: 'Aromática gastronómica y medicinal; usada en infusiones para malestares digestivos, respiratorios y emplastos antiinflamatorios.',
+            care: 'Controlar expansión de rizomas laterales; cosechar hojas maduras dejando brotes apicales sanos.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'ruda',
+            commonName: 'Ruda',
+            scientificName: 'Ruta graveolens',
+            family: 'Rutaceae',
+            origin: 'Región mediterránea (amplio uso tradicional en México)',
+            category: 'Medicinal',
+            markers: ['#6', '#32'],
+            zoneIds: ['cuadrante-3', 'plantas-medicinales'],
+            water: 'Bajo a moderado (2x/semana, tolera sequía)',
+            sun: 'Sol pleno',
+            cycle: 'Subarbusto perenne',
+            properties: 'Planta aromática repelente de insectos en policultivo y de uso etnobotánico externo/ritual (uso interno contraindicado en embarazo).',
+            care: 'Podar puntas leñosas al inicio de primavera; evitar exceso de agua para prevenir pudrición radicular.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'maguey-pulquero',
+            commonName: 'Maguey Pulquero',
+            scientificName: 'Agave salmiana',
+            family: 'Asparagaceae',
+            origin: 'Altiplano mexicano',
+            category: 'Comestible',
+            markers: ['#7'],
+            zoneIds: ['circulo-2'],
+            water: 'Muy bajo (riego ocasional en estiaje)',
+            sun: 'Sol pleno directo',
+            cycle: 'Perenne suculenta longeva',
+            properties: 'Productor tradicional de aguamiel, quiote comestible y fibra; excelente retenedor de suelo y reservorio hídrico.',
+            care: 'Mantener suelo franco-arenoso drenado; retirar hijuelos basales para propagación comunitaria.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'frijol',
+            commonName: 'Frijol',
+            scientificName: 'Phaseolus vulgaris',
+            family: 'Fabaceae',
+            origin: 'Mesoamérica y Andes',
+            category: 'Comestible',
+            markers: ['#8', '#27'],
+            zoneIds: ['circulo-2', 'circulo-7'],
+            water: 'Moderado durante floración y formación de vaina',
+            sun: 'Sol pleno a semisombra ligera',
+            cycle: 'Anual',
+            properties: 'Leguminosa básica rica en proteína vegetal y hierro; fija nitrógeno atmosférico en simbiosis con Rhizobium enriqueciendo el suelo.',
+            care: 'Asociar con tutores naturales (guamúchil o maíz); cosechar vainas tiernas para ejote o secas para semilla.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'girasol',
+            commonName: 'Girasol',
+            scientificName: 'Helianthus annuus',
+            family: 'Asteraceae',
+            origin: 'Norteamérica y México',
+            category: 'Polinizadora',
+            markers: ['#9'],
+            zoneIds: ['cuadrante-3', 'circulo-polinizador'],
+            water: 'Moderado en crecimiento vegetativo (3x/semana)',
+            sun: 'Sol pleno intenso',
+            cycle: 'Anual',
+            properties: 'Imán de abejas nativas y abejorros; semilla comestible rica en vitamina E y ácidos grasos.',
+            care: 'Sembrar en escalonamiento cada 3 semanas para sostener floración continua; entutorar en zonas ventosas.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'zinnia',
+            commonName: 'Zinnia',
+            scientificName: 'Zinnia elegans',
+            family: 'Asteraceae',
+            origin: 'México',
+            category: 'Polinizadora',
+            markers: ['#10'],
+            zoneIds: ['cuadrante-3', 'circulo-polinizador'],
+            water: 'Moderado al pie de la planta (evitar mojar follaje)',
+            sun: 'Sol pleno',
+            cycle: 'Anual de floración prolongada',
+            properties: 'Flor nativa mexicana indispensable para mariposas, abejas solitarias y sírfidos depredadores de pulgón.',
+            care: 'Despuntar flores marchitas para estimular refloración constante durante todo el temporal.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'estafiate',
+            commonName: 'Estafiate',
+            scientificName: 'Artemisia ludoviciana',
+            family: 'Asteraceae',
+            origin: 'Norteamérica y México',
+            category: 'Medicinal',
+            markers: ['#11'],
+            zoneIds: ['cuadrante-3', 'plantas-medicinales'],
+            water: 'Bajo a moderado (2x/semana)',
+            sun: 'Sol pleno',
+            cycle: 'Perenne herbácea',
+            properties: 'Planta medicinal clásica para trastornos digestivos, cólicos y desparasitación tradicional en infusión breve.',
+            care: 'Podar tallos secos al final del invierno; se propaga fácilmente por división de mata.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'calendula',
+            commonName: 'Caléndula',
+            scientificName: 'Calendula officinalis',
+            family: 'Asteraceae',
+            origin: 'Región mediterránea',
+            category: 'Medicinal',
+            markers: ['#12'],
+            zoneIds: ['cuadrante-3', 'circulo-polinizador'],
+            water: 'Moderado (2–3x/semana)',
+            sun: 'Sol pleno o semisombra suave',
+            cycle: 'Anual / bianual',
+            properties: 'Cicatrizante, antiinflamatoria dermatológica y flor comestible; atrae polinizadores y repele nematodos en el suelo.',
+            care: 'Recolectar capítulos florales abiertos por la mañana para secado a la sombra y elaboración de ungüentos.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'cempasuchil',
+            commonName: 'Cempasúchil',
+            scientificName: 'Tagetes erecta',
+            family: 'Asteraceae',
+            origin: 'México y Centroamérica',
+            category: 'Polinizadora',
+            markers: ['#13', '#15'],
+            zoneIds: ['cuadrante-3', 'circulo-polinizador', 'circulo-4'],
+            water: 'Moderado (2–3x/semana)',
+            sun: 'Sol pleno',
+            cycle: 'Anual',
+            properties: 'Atrae polinizadores, aporta carotenoides (luteína) y libera compuestos nematicidas radiculares que protegen hortalizas vecinas.',
+            care: 'Guardar semillas secas de cabezuelas sanas para resiembra estacional; podar flores secas para alargar floración.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'asclepia',
+            commonName: 'Asclepia / Algodoncillo',
+            scientificName: 'Asclepias curassavica',
+            family: 'Apocynaceae',
+            origin: 'América tropical',
+            category: 'Polinizadora',
+            markers: ['#14'],
+            zoneIds: ['cuadrante-3', 'circulo-polinizador'],
+            water: 'Moderado (2–3x/semana)',
+            sun: 'Sol pleno',
+            cycle: 'Perenne herbácea',
+            properties: 'Planta hospedera esencial para orugas de la mariposa Monarca (Danaus plexippus) y fuente abundante de néctar.',
+            care: 'Evitar insecticidas; podar a 15 cm en invierno para prevenir acumulación de esporas de Ophryocystis.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'manzano',
+            commonName: 'Manzano',
+            scientificName: 'Malus domestica',
+            family: 'Rosaceae',
+            origin: 'Asia Central (adaptado a valles templados)',
+            category: 'Árbol',
+            markers: ['#17'],
+            zoneIds: ['cuadrante-3'],
+            water: 'Moderado profundo en cajete (2x/semana en estiaje)',
+            sun: 'Sol pleno',
+            cycle: 'Árbol frutal caducifolio perenne',
+            properties: 'Frutal templado de aporte alimentario, sombra ligera y floración melífera primaveral.',
+            care: 'Poda invernal de formación en vaso abierto; acolchado grueso orgánico alrededor del cajete.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'guamuchil',
+            commonName: 'Guamúchil',
+            scientificName: 'Pithecellobium dulce',
+            family: 'Fabaceae',
+            origin: 'México, Centroamérica y norte de Sudamérica',
+            category: 'Árbol',
+            markers: ['#18', '#23', '#24', '#26'],
+            zoneIds: ['circulo-4', 'circulo-8', 'circulo-7'],
+            water: 'Bajo (muy resistente a sequía tras establecimiento)',
+            sun: 'Sol pleno',
+            cycle: 'Árbol perenne nativo',
+            properties: 'Árbol nativo fijador de nitrógeno; vainas comestibles dulces (arilo) y dosel clave para microclima del huerto.',
+            care: 'Podas selectivas de aclareo para equilibrar luz hacia los estratos herbáceos inferiores.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'capitana',
+            commonName: 'Capitana',
+            scientificName: 'Verbesina crocata',
+            family: 'Asteraceae',
+            origin: 'México (occidente y centro)',
+            category: 'Medicinal',
+            markers: ['#19', '#31'],
+            zoneIds: ['fosa-1', 'plantas-medicinales'],
+            water: 'Bajo a moderado; aprovecha humedad de fosa de infiltración',
+            sun: 'Sol pleno a semisombra',
+            cycle: 'Arbusto perenne nativo',
+            properties: 'Especie tradicional jalisciense usada en lavados cicatrizantes, enjuagues bucales y atracción de insectos benéficos.',
+            care: 'Podar ramas lignificadas después de la floración invernal para estimular brotes tiernos.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'perejil',
+            commonName: 'Perejil',
+            scientificName: 'Petroselinum crispum',
+            family: 'Apiaceae',
+            origin: 'Región mediterránea',
+            category: 'Comestible',
+            markers: ['#20'],
+            zoneIds: ['cuadrante-9'],
+            water: 'Moderado frecuente (3–4x/semana)',
+            sun: 'Semisombra luminosa o sol de mañana',
+            cycle: 'Bianual',
+            properties: 'Hortaliza culinaria rica en vitamina K, C y clorofila; sus umbelas florales alimentan avispas parasitoides benéficas.',
+            care: 'Cosechar tallos exteriores desde la base; mantener suelo suelto y húmedo con composta fina.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'calabaza',
+            commonName: 'Calabaza',
+            scientificName: 'Cucurbita pepo',
+            family: 'Cucurbitaceae',
+            origin: 'Mesoamérica',
+            category: 'Comestible',
+            markers: ['#21', '#30'],
+            zoneIds: ['cuadrante-9', 'plantas-medicinales'],
+            water: 'Moderado a alto en base (sin mojar hojas)',
+            sun: 'Sol pleno',
+            cycle: 'Anual rastrera',
+            properties: 'Milpa esencial: fruto, flor de calabaza y semilla comestibles; sus hojas anchas funcionan como cobertura viva contra malezas.',
+            care: 'Aplicar composta abundante al trasplante; vigilar cenicilla polvorienta aplicando caldo sulfocálcico o leche diluida.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'platanar',
+            commonName: 'Platanar',
+            scientificName: 'Musa paradisiaca',
+            family: 'Musaceae',
+            origin: 'Sudeste asiático (naturalizado en trópicos mexicanos)',
+            category: 'Árbol',
+            markers: ['#22'],
+            zoneIds: ['circulo-8'],
+            water: 'Alto (riego abundante + acolchado grueso)',
+            sun: 'Sol pleno protegido del viento',
+            cycle: 'Herbácea gigante perenne',
+            properties: 'Fruto energético rico en potasio; sus hojas aportan biomasa rica en carbono y potasio para las pilas de composta.',
+            care: 'Dejar 2–3 hijuelos por cepa (madre, hijo y nieto); cortar hojas secas para acolchado del mismo círculo.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'hinojo',
+            commonName: 'Hinojo',
+            scientificName: 'Foeniculum vulgare',
+            family: 'Apiaceae',
+            origin: 'Cuenca mediterránea',
+            category: 'Aromática',
+            markers: ['#25', '#28'],
+            zoneIds: ['circulo-8', 'circulo-5'],
+            water: 'Moderado (2–3x/semana)',
+            sun: 'Sol pleno',
+            cycle: 'Perenne herbácea aromática',
+            properties: 'Aromática anisada digestiva y carminativa; sus umbelas atraen mariquitas, sírfidos y crisopas controladoras de plagas.',
+            care: 'Ubicar separado de frijol o tomate por alelopatía; cosechar hojas plumosas y semillas maduras.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'arugula',
+            commonName: 'Arúgula',
+            scientificName: 'Eruca vesicaria',
+            family: 'Brassicaceae',
+            origin: 'Región mediterránea',
+            category: 'Comestible',
+            markers: ['#29'],
+            zoneIds: ['circulo-5'],
+            water: 'Frecuente suave (4x/semana para evitar sabor picante excesivo)',
+            sun: 'Sol suave / semisombra de tarde',
+            cycle: 'Anual de ciclo corto (35–45 días)',
+            properties: 'Hoja verde rica en antioxidantes, nitratos naturales y calcio, de cosecha escalonada para ensaladas.',
+            care: 'Cosechar hojas externas de 10–12 cm; proteger de pulguilla con asociación de aromáticas.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'romero',
+            commonName: 'Romero',
+            scientificName: 'Salvia rosmarinus',
+            family: 'Lamiaceae',
+            origin: 'Región mediterránea',
+            category: 'Aromática / Medicinal',
+            markers: ['#33'],
+            zoneIds: ['plantas-medicinales'],
+            water: 'Bajo (1–2x/semana, suelo bien drenado)',
+            sun: 'Sol pleno',
+            cycle: 'Arbusto perenne',
+            properties: 'Tónico circulatorio y de memoria, antioxidante culinario y repelente aromático de insectos.',
+            care: 'No exceder riego ni fertilización; podar puntas verdes para mantener porte compacto y ramificado.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'muicle',
+            commonName: 'Muicle',
+            scientificName: 'Justicia spicigera',
+            family: 'Acanthaceae',
+            origin: 'México y Centroamérica',
+            category: 'Aromática / Medicinal',
+            markers: ['#33'],
+            zoneIds: ['plantas-medicinales'],
+            water: 'Moderado (2–3x/semana)',
+            sun: 'Semisombra a sol pleno',
+            cycle: 'Arbusto perenne nativo',
+            properties: 'Planta medicinal ancestral mexicana para infusiones tonificantes, control de anemia leve, cólicos y tinte natural violáceo.',
+            care: 'Sus flores tubulares naranjas alimentan colibríes; podar tras floración para renovar follaje.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'cola-de-zorrillo',
+            commonName: 'Cola de Zorrillo',
+            scientificName: 'Petiveria alliacea',
+            family: 'Petiveriaceae',
+            origin: 'América tropical y subtropical',
+            category: 'Medicinal',
+            markers: ['#34'],
+            zoneIds: ['biodigestores', 'circulo-1'],
+            water: 'Bajo a moderado (2x/semana)',
+            sun: 'Semisombra luminosa',
+            cycle: 'Subarbusto perenne',
+            properties: 'Especie etnobotánica de aroma aliáceo intenso utilizada externamente como analgésico tópico y repelente agrícola.',
+            care: 'Manejar poda moderada en bordes de sendero; resiste suelos compactados cercanos a la estación de compostaje.',
+            mainPhoto: '',
+            photos: []
+          },
+          {
+            id: 'nopal-verdulero',
+            commonName: 'Nopal Verdulero',
+            scientificName: 'Opuntia ficus-indica',
+            family: 'Cactaceae',
+            origin: 'Mesoamérica',
+            category: 'Comestible',
+            markers: ['#35'],
+            zoneIds: ['plantas-medicinales'],
+            water: 'Muy bajo (riego ligero en temporada seca)',
+            sun: 'Sol pleno directo',
+            cycle: 'Perenne suculenta',
+            properties: 'Nopalitos tiernos ricos en fibra soluble, calcio y mucílago; regula glucosa y sirve como barrera viva perimetral.',
+            care: 'Cosechar cladodios jóvenes de 12–15 cm por la mañana; mantener suelo drenado sin exceso de humedad.',
+            mainPhoto: '',
+            photos: []
+          }
+        ];
+
+        const MARKERS = [
+          { id: '#1', label: '1', speciesId: 'maracuya', speciesName: 'Maracuyá', zoneIds: ['cuadrante-3'], category: 'Comestible', x: 332, y: 540 },
+          { id: '#2', label: '2', speciesId: 'papaya', speciesName: 'Papaya', zoneIds: ['cuadrante-3'], category: 'Comestible', x: 365, y: 518 },
+          { id: '#3', label: '3', speciesId: 'hoja-santa', speciesName: 'Hoja Santa / Acuyo', zoneIds: ['cuadrante-3'], category: 'Medicinal', x: 396, y: 556 },
+          { id: '#4', label: '4', speciesId: 'maracuya', speciesName: 'Maracuyá', zoneIds: ['cuadrante-3'], category: 'Comestible', x: 432, y: 522 },
+          { id: '#5', label: '5', speciesId: 'papaya', speciesName: 'Papaya', zoneIds: ['cuadrante-3'], category: 'Comestible', x: 468, y: 558 },
+          { id: '#6', label: '6', speciesId: 'ruda', speciesName: 'Ruda', zoneIds: ['cuadrante-3'], category: 'Medicinal', x: 500, y: 524 },
+          { id: '#7', label: '7', speciesId: 'maguey-pulquero', speciesName: 'Maguey Pulquero', zoneIds: ['circulo-2'], category: 'Comestible', x: 504, y: 356 },
+          { id: '#8', label: '8', speciesId: 'frijol', speciesName: 'Frijol', zoneIds: ['circulo-2'], category: 'Comestible', x: 534, y: 342 },
+          { id: '#9', label: '9', speciesId: 'girasol', speciesName: 'Girasol', zoneIds: ['circulo-polinizador', 'cuadrante-3'], category: 'Polinizadora', x: 632, y: 344, altPos: { x: 545, y: 570 } },
+          { id: '#10', label: '10', speciesId: 'zinnia', speciesName: 'Zinnia', zoneIds: ['circulo-polinizador', 'cuadrante-3'], category: 'Polinizadora', x: 662, y: 330, altPos: { x: 582, y: 572 } },
+          { id: '#11', label: '11', speciesId: 'estafiate', speciesName: 'Estafiate', zoneIds: ['cuadrante-3', 'plantas-medicinales'], category: 'Medicinal', x: 618, y: 514, altPos: { x: 244, y: 122 } },
+          { id: '#12', label: '12', speciesId: 'calendula', speciesName: 'Caléndula', zoneIds: ['circulo-polinizador', 'cuadrante-3'], category: 'Medicinal', x: 688, y: 352, altPos: { x: 664, y: 562 } },
+          { id: '#13', label: '13', speciesId: 'cempasuchil', speciesName: 'Cempasúchil', zoneIds: ['circulo-polinizador', 'cuadrante-3'], category: 'Polinizadora', x: 676, y: 396, altPos: { x: 702, y: 522 } },
+          { id: '#14', label: '14', speciesId: 'asclepia', speciesName: 'Asclepia / Algodoncillo', zoneIds: ['circulo-polinizador', 'cuadrante-3'], category: 'Polinizadora', x: 630, y: 394, altPos: { x: 738, y: 562 } },
+          { id: '#15', label: '15', speciesId: 'cempasuchil', speciesName: 'Cempasúchil', zoneIds: ['circulo-4'], category: 'Polinizadora', x: 836, y: 392 },
+          { id: '#16', label: '16', speciesId: 'maracuya', speciesName: 'Maracuyá', zoneIds: ['cuadrante-3'], category: 'Comestible', x: 782, y: 522 },
+          { id: '#17', label: '17', speciesId: 'manzano', speciesName: 'Manzano', zoneIds: ['cuadrante-3'], category: 'Árbol', x: 824, y: 552 },
+          { id: '#18', label: '18', speciesId: 'guamuchil', speciesName: 'Guamúchil', zoneIds: ['circulo-4'], category: 'Árbol', x: 782, y: 330 },
+          { id: '#19', label: '19', speciesId: 'capitana', speciesName: 'Capitana', zoneIds: ['fosa-1'], category: 'Medicinal', x: 454, y: 128 },
+          { id: '#20', label: '20', speciesId: 'perejil', speciesName: 'Perejil', zoneIds: ['cuadrante-9'], category: 'Comestible', x: 925, y: 204 },
+          { id: '#21', label: '21', speciesId: 'calabaza', speciesName: 'Calabaza', zoneIds: ['cuadrante-9'], category: 'Comestible', x: 925, y: 282 },
+          { id: '#22', label: '22', speciesId: 'platanar', speciesName: 'Platanar', zoneIds: ['circulo-8'], category: 'Árbol', x: 788, y: 134 },
+          { id: '#23', label: '23', speciesId: 'guamuchil', speciesName: 'Guamúchil', zoneIds: ['circulo-8'], category: 'Árbol', x: 844, y: 134 },
+          { id: '#24', label: '24', speciesId: 'guamuchil', speciesName: 'Guamúchil', zoneIds: ['circulo-7'], category: 'Árbol', x: 670, y: 140 },
+          { id: '#25', label: '25', speciesId: 'hinojo', speciesName: 'Hinojo', zoneIds: ['circulo-8'], category: 'Aromática', x: 844, y: 192 },
+          { id: '#26', label: '26', speciesId: 'guamuchil', speciesName: 'Guamúchil', zoneIds: ['circulo-7'], category: 'Árbol', x: 710, y: 184 },
+          { id: '#27', label: '27', speciesId: 'frijol', speciesName: 'Frijol', zoneIds: ['circulo-7'], category: 'Comestible', x: 660, y: 184 },
+          { id: '#28', label: '28', speciesId: 'hinojo', speciesName: 'Hinojo', zoneIds: ['circulo-5'], category: 'Aromática', x: 332, y: 148 },
+          { id: '#29', label: '29', speciesId: 'arugula', speciesName: 'Arúgula', zoneIds: ['circulo-5'], category: 'Comestible', x: 372, y: 180 },
+          { id: '#30', label: '30', speciesId: 'calabaza', speciesName: 'Calabaza', zoneIds: ['plantas-medicinales'], category: 'Comestible', x: 196, y: 120 },
+          { id: '#31', label: '31', speciesId: 'capitana', speciesName: 'Capitana', zoneIds: ['plantas-medicinales'], category: 'Medicinal', x: 242, y: 170 },
+          { id: '#32', label: '32', speciesId: 'ruda', speciesName: 'Ruda', zoneIds: ['plantas-medicinales'], category: 'Medicinal', x: 196, y: 248 },
+          { id: '#33', label: '33', speciesId: 'romero', speciesName: 'Romero y Muicle', secondarySpeciesId: 'muicle', speciesName2: 'Muicle', zoneIds: ['plantas-medicinales'], category: 'Aromática / Medicinal', x: 242, y: 282 },
+          { id: '#33b', label: '33b', speciesId: 'maracuya', speciesName: 'Maracuyá', zoneIds: ['plantas-medicinales'], category: 'Comestible', x: 222, y: 334 },
+          { id: '#34', label: '34', speciesId: 'cola-de-zorrillo', speciesName: 'Cola de Zorrillo', zoneIds: ['biodigestores', 'circulo-1'], category: 'Medicinal', x: 264, y: 454, altPos: { x: 312, y: 372 } },
+          { id: '#35', label: '35', speciesId: 'nopal-verdulero', speciesName: 'Nopal Verdulero', zoneIds: ['plantas-medicinales'], category: 'Comestible', x: 192, y: 312 }
+        ];
+
+        const DEFAULT_TASKS = [
+          {
+            id: 't1',
+            title: 'Instalar estacas QR impermeables en Cuadrante 3 (#1–#6)',
+            zoneId: 'cuadrante-3',
+            category: 'Señalética y Placas QR en Campo',
+            assignee: 'Colectivo Señalética',
+            status: 'todo',
+            due: '2026-11-22'
+          },
+          {
+            id: 't2',
+            title: 'Riego matutino y revisión de floración en Círculo Polinizador',
+            zoneId: 'circulo-polinizador',
+            category: 'Mantenimiento Botánico y Riego',
+            assignee: 'Brigada Matutina',
+            status: 'progress',
+            due: '2026-11-19'
+          },
+          {
+            id: 't3',
+            title: 'Medición de pH y aireación de pila activa en Biodigestores',
+            zoneId: 'biodigestores',
+            category: 'Biodigestores y Composta',
+            assignee: 'Equipo Compostaje',
+            status: 'verify',
+            due: '2026-11-20'
+          },
+          {
+            id: 't4',
+            title: 'Poda sanitaria y acolchado de Hoja Santa y Romero',
+            zoneId: 'plantas-medicinales',
+            category: 'Mantenimiento Botánico y Riego',
+            assignee: 'Círculo Medicinal',
+            status: 'done',
+            due: '2026-11-15'
+          }
+        ];
+
+        const DEFAULT_BITACORA = [
+          {
+            id: 'b1',
+            date: '2026-11-17',
+            type: 'Riego',
+            zoneId: 'circulo-polinizador',
+            speciesId: 'asclepia',
+            author: 'Mariana V.',
+            notes: 'Riego profundo al pie de asclepias y zinnias; se observaron 3 orugas monarca activas.'
+          },
+          {
+            id: 'b2',
+            date: '2026-11-16',
+            type: 'Abono / Composta',
+            zoneId: 'cuadrante-9',
+            speciesId: 'perejil',
+            author: 'Carlos M.',
+            notes: 'Aplicación de 2 cubetas de composta cernida de los biodigestores en surcos de perejil y calabaza.'
+          },
+          {
+            id: 'b3',
+            date: '2026-11-14',
+            type: 'Poda',
+            zoneId: 'circulo-7',
+            speciesId: 'guamuchil',
+            author: 'Colectivo Agroforestal',
+            notes: 'Aclareo de ramas bajas del guamúchil (#24) para mejorar luz hacia frijol trepador (#27).'
+          },
+          {
+            id: 'b4',
+            date: '2026-11-12',
+            type: 'Colocación Placa QR',
+            zoneId: 'circulo-2',
+            speciesId: 'maguey-pulquero',
+            author: 'Sofía R.',
+            notes: 'Estaca barnizada instalada junto al marcador #7 con código QR directo a ficha móvil.'
+          }
+        ];
+
+        const DEFAULT_NOTICES = [
+          {
+            id: 'n1',
+            title: 'Jornada Comunitaria de Compostaje y Biol Anaeróbico',
+            date: 'Sábado 21 nov · 09:30 h',
+            place: 'Estación de Biodigestores y Composta',
+            description: 'Volteo de pila termofílica, cosecha de humus y envasado de biofertilizante líquido para parcelas del huerto.'
+          },
+          {
+            id: 'n2',
+            title: 'Taller Práctico de Reproducción de Plantas Medicinales',
+            date: 'Miércoles 25 nov · 16:00 h',
+            place: 'Cama de Plantas Medicinales',
+            description: 'Esquejes de romero, muicle y ruda en sustrato orgánico. Abierto a toda la comunidad CUCSH.'
+          },
+          {
+            id: 'n3',
+            title: 'Voluntariado de Riego y Mapeo de Polinizadores',
+            date: 'Viernes 27 nov · 08:30 h',
+            place: 'Círculo Polinizador y Cuadrante 3',
+            description: 'Registro fotográfico evolutivo de especies y reposición de estacas QR en corredor sur.'
+          }
+        ];
+
+        const DEFAULT_INSTAGRAM = {
+          postUrl: 'https://www.instagram.com/p/DIXH4DzyO3G/',
+          postEmbed: 'https://www.instagram.com/p/DIXH4DzyO3G/embed',
+          reelUrl: 'https://www.instagram.com/p/DC7uew9psx9/',
+          reelEmbed: 'https://www.instagram.com/p/DC7uew9psx9/embed'
+        };
+
+        function loadState() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) {
+              return {
+                species: JSON.parse(JSON.stringify(DEFAULT_SPECIES)),
+                tasks: JSON.parse(JSON.stringify(DEFAULT_TASKS)),
+                bitacora: JSON.parse(JSON.stringify(DEFAULT_BITACORA)),
+                notices: JSON.parse(JSON.stringify(DEFAULT_NOTICES)),
+                instagram: JSON.parse(JSON.stringify(DEFAULT_INSTAGRAM))
+              };
+            }
+            const parsed = JSON.parse(raw);
+            return {
+              species: Array.isArray(parsed.species) && parsed.species.length ? parsed.species : JSON.parse(JSON.stringify(DEFAULT_SPECIES)),
+              tasks: Array.isArray(parsed.tasks) ? parsed.tasks : JSON.parse(JSON.stringify(DEFAULT_TASKS)),
+              bitacora: Array.isArray(parsed.bitacora) ? parsed.bitacora : JSON.parse(JSON.stringify(DEFAULT_BITACORA)),
+              notices: Array.isArray(parsed.notices) ? parsed.notices : JSON.parse(JSON.stringify(DEFAULT_NOTICES)),
+              instagram: parsed.instagram && parsed.instagram.postUrl ? parsed.instagram : JSON.parse(JSON.stringify(DEFAULT_INSTAGRAM))
+            };
+          } catch (err) {
+            return {
+              species: JSON.parse(JSON.stringify(DEFAULT_SPECIES)),
+              tasks: JSON.parse(JSON.stringify(DEFAULT_TASKS)),
+              bitacora: JSON.parse(JSON.stringify(DEFAULT_BITACORA)),
+              notices: JSON.parse(JSON.stringify(DEFAULT_NOTICES)),
+              instagram: JSON.parse(JSON.stringify(DEFAULT_INSTAGRAM))
+            };
+          }
+        }
+
+        const state = {
+          role: 'visitor', // 'visitor' | 'admin'
+          activeTab: 'mapa',
+          fichasSubView: 'catalog',
+          mapMode: 'lines', // 'lines' | 'markers'
+          mapCategory: 'Todas',
+          hoveredZoneId: null,
+          selectedZoneId: null,
+          dragTaskId: null,
+          data: loadState()
+        };
+
+        function saveState() {
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data));
+            return true;
+          } catch (e) {
+            showToast('Almacenamiento local lleno. Usa imágenes más ligeras o URLs.', 'error');
+            return false;
+          }
+        }
+        function escapeHtml(str) {
+          return String(str == null ? '' : str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+        }
+
+        function showToast(message, type) {
+          const container = document.getElementById('toast-container');
+          if (!container) return;
+          const el = document.createElement('div');
+          el.className =
+            'pointer-events-auto bg-[#0D100E] text-[#F7F6F1] border ' +
+            (type === 'error' ? 'border-red-400' : 'border-[#D4AF37]') +
+            ' rounded-xl px-4 py-3 shadow-2xl flex items-center justify-between gap-3 text-xs sm:text-sm font-medium';
+          el.innerHTML =
+            '<span class="' +
+            (type === 'error' ? 'text-red-300' : 'text-[#E6C35C]') +
+            '">' +
+            escapeHtml(message) +
+            '</span>';
+          container.appendChild(el);
+          setTimeout(function () {
+            el.style.opacity = '0';
+            el.style.transition = 'opacity 220ms ease';
+            setTimeout(function () {
+              if (el.parentNode) el.parentNode.removeChild(el);
+            }, 240);
+          }, 3200);
+        }
+
+        function getZoneById(zoneId) {
+          return ZONES.find(function (z) { return z.id === zoneId; }) || ZONES[0];
+        }
+
+        function getSpeciesById(speciesId) {
+          return state.data.species.find(function (s) { return s.id === speciesId; }) || null;
+        }
+
+        function getCategoryColor(cat) {
+          const c = (cat || '').toLowerCase();
+          if (c.indexOf('poliniz') !== -1) return '#E6C35C';
+          if (c.indexOf('medicinal') !== -1 && c.indexOf('arom') === -1) return '#38BDF8';
+          if (c.indexOf('arom') !== -1) return '#C084FC';
+          if (c.indexOf('árbol') !== -1 || c.indexOf('arbol') !== -1) return '#2D6A4F';
+          return '#52B788';
+        }
+
+        function getSpeciesPhotoFrameHtml(sp, extraClass) {
+          const cls = extraClass || '';
+          if (sp.mainPhoto) {
+            return (
+              '<div class="relative aspect-16-9 w-full bg-[#0D100E] border-2 border-[#D4AF37]/70 rounded-xl overflow-hidden ' + cls + '">' +
+                '<img src="' + escapeHtml(sp.mainPhoto) + '" alt="' + escapeHtml(sp.commonName) + '" referrerpolicy="no-referrer" class="w-full h-full object-cover" />' +
+                '<div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#0D100E]/90 via-[#0D100E]/35 to-transparent px-3 py-2 flex items-center justify-between text-[11px] text-[#E6C35C]">' +
+                  '<span>Fotografía en campo</span>' +
+                  '<span class="tabular-nums">' + escapeHtml(sp.markers.join(', ')) + '</span>' +
+                '</div>' +
+              '</div>'
+            );
+          }
+          const catColor = getCategoryColor(sp.category);
+          return (
+            '<div class="relative aspect-16-9 w-full bg-gradient-to-br from-[#0D100E] via-[#161B18] to-[#1B4332] border-2 border-[#D4AF37]/60 rounded-xl overflow-hidden flex flex-col items-center justify-center p-4 text-center ' + cls + '">' +
+              '<svg width="54" height="54" viewBox="0 0 64 64" aria-hidden="true" class="mb-2 opacity-90">' +
+                '<circle cx="32" cy="32" r="28" fill="none" stroke="#D4AF37" stroke-width="1.2" stroke-dasharray="4 4"/>' +
+                '<path d="M32 48V20M32 36C23 36 18 30 18 22C26 22 32 27 32 36ZM32 30C40 30 46 24 46 16C38 16 32 22 32 30Z" fill="' + catColor + '" stroke="#E6C35C" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>' +
+              '</svg>' +
+              '<span class="text-xs font-semibold text-[#E6C35C] tracking-wide">Sin fotografía en campo aún</span>' +
+              '<span class="text-[11px] text-[#F7F6F1]/65 mt-0.5 italic">' + escapeHtml(sp.scientificName) + '</span>' +
+            '</div>'
+          );
+        }
+
+        // Client-side Canvas Compression (max 800px width, WebP/JPEG quality 0.78)
+        function compressImageFile(file) {
+          return new Promise(function (resolve, reject) {
+            if (!file) {
+              reject(new Error('Archivo no seleccionado'));
+              return;
+            }
+            const reader = new FileReader();
+            reader.onerror = function () { reject(new Error('Error leyendo archivo')); };
+            reader.onload = function (ev) {
+              const img = new Image();
+              img.onerror = function () { reject(new Error('Formato de imagen inválido')); };
+              img.onload = function () {
+                const maxW = 800;
+                const scale = img.width > maxW ? maxW / img.width : 1;
+                const w = Math.max(1, Math.round(img.width * scale));
+                const h = Math.max(1, Math.round(img.height * scale));
+                const canvas = document.createElement('canvas');
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, w, h);
+                let out = canvas.toDataURL('image/webp', 0.78);
+                if (!out || out.indexOf('data:image/webp') !== 0) {
+                  out = canvas.toDataURL('image/jpeg', 0.78);
+                }
+                resolve(out);
+              };
+              img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+          });
+        }
+
+        // Self-Contained QR Generator (ISO/IEC 18004, Versions 1..6, ECC L)
+        const QR_GF_EXP = new Uint8Array(512);
+        const QR_GF_LOG = new Uint8Array(256);
+        (function initGalois() {
+          let x = 1;
+          for (let i = 0; i < 255; i++) {
+            QR_GF_EXP[i] = x;
+            QR_GF_LOG[x] = i;
+            x <<= 1;
+            if (x & 0x100) x ^= 0x11d;
+          }
+          for (let i = 255; i < 512; i++) {
+            QR_GF_EXP[i] = QR_GF_EXP[i - 255];
+          }
+        })();
+
+        function qrGfMul(a, b) {
+          if (a === 0 || b === 0) return 0;
+          return QR_GF_EXP[QR_GF_LOG[a] + QR_GF_LOG[b]];
+        }
+
+        function qrRsGenPoly(deg) {
+          let poly = [1];
+          for (let i = 0; i < deg; i++) {
+            const next = new Array(poly.length + 1).fill(0);
+            const f = QR_GF_EXP[i];
+            for (let j = 0; j < poly.length; j++) {
+              next[j] ^= poly[j];
+              next[j + 1] ^= qrGfMul(poly[j], f);
+            }
+            poly = next;
+          }
+          return poly;
+        }
+
+        function qrRsRem(data, ecLen) {
+          const gen = qrRsGenPoly(ecLen);
+          const res = data.concat(new Array(ecLen).fill(0));
+          for (let i = 0; i < data.length; i++) {
+            const c = res[i];
+            if (c !== 0) {
+              for (let j = 0; j < gen.length; j++) {
+                res[i + j] ^= qrGfMul(gen[j], c);
+              }
+            }
+          }
+          return res.slice(data.length);
+        }
+
+        const QR_SPECS = [
+          { v: 1, n: 21, d: 19, ec: 7, al: [] },
+          { v: 2, n: 25, d: 34, ec: 10, al: [6, 18] },
+          { v: 3, n: 29, d: 55, ec: 15, al: [6, 22] },
+          { v: 4, n: 33, d: 80, ec: 20, al: [6, 26] },
+          { v: 5, n: 37, d: 108, ec: 26, al: [6, 30] },
+          { v: 6, n: 41, d: 136, ec: 18, al: [6, 34] }
+        ];
+
+        function buildQrMatrix(text) {
+          const bytes = Array.from(new TextEncoder().encode(text));
+          const spec = QR_SPECS.find(function (s) { return bytes.length + 2 <= s.d; }) || QR_SPECS[QR_SPECS.length - 1];
+          const payload = bytes.slice(0, spec.d - 2);
+          const bits = [];
+          function push(val, len) {
+            for (let i = len - 1; i >= 0; i--) bits.push((val >> i) & 1);
+          }
+          push(4, 4);
+          push(payload.length, 8);
+          for (let i = 0; i < payload.length; i++) push(payload[i], 8);
+          const totalBits = spec.d * 8;
+          push(0, Math.min(4, totalBits - bits.length));
+          while (bits.length % 8 !== 0) bits.push(0);
+          const pads = [0xec, 0x11];
+          let pi = 0;
+          while (bits.length < totalBits) {
+            push(pads[pi % 2], 8);
+            pi++;
+          }
+          const words = [];
+          for (let i = 0; i < bits.length; i += 8) {
+            let w = 0;
+            for (let j = 0; j < 8; j++) w = (w << 1) | bits[i + j];
+            words.push(w);
+          }
+          let finalWords = [];
+          if (spec.v < 6) {
+            finalWords = words.concat(qrRsRem(words, spec.ec));
+          } else {
+            const b1 = words.slice(0, 68);
+            const b2 = words.slice(68, 136);
+            const e1 = qrRsRem(b1, 18);
+            const e2 = qrRsRem(b2, 18);
+            for (let i = 0; i < 68; i++) finalWords.push(b1[i], b2[i]);
+            for (let i = 0; i < 18; i++) finalWords.push(e1[i], e2[i]);
+          }
+          const n = spec.n;
+          const m = Array.from({ length: n }, function () { return new Array(n).fill(-1); });
+          const res = Array.from({ length: n }, function () { return new Array(n).fill(false); });
+          function setM(r, c, v) {
+            if (r < 0 || r >= n || c < 0 || c >= n) return;
+            m[r][c] = v;
+            res[r][c] = true;
+          }
+          function finder(r0, c0) {
+            for (let dr = -1; dr <= 7; dr++) {
+              for (let dc = -1; dc <= 7; dc++) {
+                const r = r0 + dr;
+                const c = c0 + dc;
+                if (r < 0 || r >= n || c < 0 || c >= n) continue;
+                const inO = dr >= 0 && dr <= 6 && dc >= 0 && dc <= 6;
+                const brd = dr === 0 || dr === 6 || dc === 0 || dc === 6;
+                const core = dr >= 2 && dr <= 4 && dc >= 2 && dc <= 4;
+                setM(r, c, inO && (brd || core) ? 1 : 0);
+              }
+            }
+          }
+          finder(0, 0);
+          finder(0, n - 7);
+          finder(n - 7, 0);
+          if (spec.al.length >= 2) {
+            for (let ai = 0; ai < spec.al.length; ai++) {
+              for (let aj = 0; aj < spec.al.length; aj++) {
+                const ar = spec.al[ai];
+                const ac = spec.al[aj];
+                if ((ar === 6 && ac === 6) || (ar === 6 && ac === n - 7) || (ar === n - 7 && ac === 6)) continue;
+                for (let dr = -2; dr <= 2; dr++) {
+                  for (let dc = -2; dc <= 2; dc++) {
+                    const edge = Math.abs(dr) === 2 || Math.abs(dc) === 2;
+                    setM(ar + dr, ac + dc, edge || (dr === 0 && dc === 0) ? 1 : 0);
+                  }
+                }
+              }
+            }
+          }
+          for (let i = 8; i < n - 8; i++) {
+            if (!res[6][i]) setM(6, i, i % 2 === 0 ? 1 : 0);
+            if (!res[i][6]) setM(i, 6, i % 2 === 0 ? 1 : 0);
+          }
+          setM(n - 8, 8, 1);
+          for (let i = 0; i < 9; i++) {
+            if (!res[8][i]) setM(8, i, 0);
+            if (!res[i][8]) setM(i, 8, 0);
+          }
+          for (let i = n - 8; i < n; i++) {
+            if (!res[8][i]) setM(8, i, 0);
+            if (!res[i][8]) setM(i, 8, 0);
+          }
+          const allBits = [];
+          for (let i = 0; i < finalWords.length; i++) {
+            for (let b = 7; b >= 0; b--) allBits.push((finalWords[i] >> b) & 1);
+          }
+          let bi = 0;
+          let up = true;
+          for (let col = n - 1; col > 0; col -= 2) {
+            if (col === 6) col--;
+            for (let i = 0; i < n; i++) {
+              const r = up ? n - 1 - i : i;
+              for (let dc = 0; dc < 2; dc++) {
+                const c = col - dc;
+                if (!res[r][c]) {
+                  const raw = bi < allBits.length ? allBits[bi++] : 0;
+                  m[r][c] = (r + c) % 2 === 0 ? raw ^ 1 : raw;
+                }
+              }
+            }
+            up = !up;
+          }
+          const fmt = 0x77c4;
+          for (let i = 0; i < 15; i++) {
+            const bit = (fmt >> (14 - i)) & 1;
+            if (i < 6) setM(8, i, bit);
+            else if (i === 6) setM(8, 7, bit);
+            else if (i === 7) setM(8, 8, bit);
+            else if (i === 8) setM(7, 8, bit);
+            else setM(14 - i, 8, bit);
+            if (i < 7) setM(n - 1 - i, 8, bit);
+            else setM(8, n - 15 + i, bit);
+          }
+          return m;
+        }
+
+        function getFichaShareUrl(speciesId) {
+          const base = window.location.href.split('#')[0];
+          return base + '#ficha/' + speciesId;
+        }
+
+        function renderQrSvg(text, pxSize) {
+          const size = pxSize || 120;
+          const matrix = buildQrMatrix(text);
+          const n = matrix.length;
+          const quiet = 2;
+          const total = n + quiet * 2;
+          let rects = '';
+          for (let r = 0; r < n; r++) {
+            for (let c = 0; c < n; c++) {
+              if (matrix[r][c] === 1) {
+                rects += '<rect x="' + (c + quiet) + '" y="' + (r + quiet) + '" width="1" height="1" fill="#0D100E"/>';
+              }
+            }
+          }
+          return (
+            '<svg width="' + size + '" height="' + size + '" viewBox="0 0 ' + total + ' ' + total + '" shape-rendering="crispEdges" role="img" aria-label="Código QR de parcela">' +
+              '<rect width="' + total + '" height="' + total + '" fill="#FFFFFF"/>' +
+              rects +
+            '</svg>'
+          );
+        }
+
+        function downloadQrPlaquePng(speciesId) {
+          const sp = getSpeciesById(speciesId);
+          if (!sp) return;
+          const url = getFichaShareUrl(sp.id);
+          const matrix = buildQrMatrix(url);
+          const n = matrix.length;
+          const canvas = document.createElement('canvas');
+          canvas.width = 480;
+          canvas.height = 600;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#0D100E';
+          ctx.fillRect(0, 0, 480, 600);
+          ctx.strokeStyle = '#D4AF37';
+          ctx.lineWidth = 6;
+          ctx.strokeRect(14, 14, 452, 572);
+
+          ctx.fillStyle = '#E6C35C';
+          ctx.font = 'bold 26px Georgia, serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(sp.commonName, 240, 62);
+
+          ctx.fillStyle = '#F7F6F1';
+          ctx.font = 'italic 16px Georgia, serif';
+          ctx.fillText(sp.scientificName, 240, 90);
+
+          const qrBox = 300;
+          const cell = qrBox / (n + 4);
+          const ox = 90;
+          const oy = 115;
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(ox, oy, qrBox, qrBox);
+          ctx.fillStyle = '#0D100E';
+          for (let r = 0; r < n; r++) {
+            for (let c = 0; c < n; c++) {
+              if (matrix[r][c] === 1) {
+                ctx.fillRect(ox + (c + 2) * cell, oy + (r + 2) * cell, Math.ceil(cell), Math.ceil(cell));
+              }
+            }
+          }
+          ctx.fillStyle = '#52B788';
+          ctx.font = 'bold 16px sans-serif';
+          ctx.fillText('Marcadores: ' + sp.markers.join(', '), 240, 456);
+          ctx.fillStyle = '#F7F6F1';
+          ctx.font = '14px sans-serif';
+          const zoneText = sp.zoneIds.map(function (z) { return getZoneById(z).name; }).join(' · ');
+          ctx.fillText(zoneText, 240, 486);
+          ctx.fillStyle = '#D4AF37';
+          ctx.font = 'bold 13px sans-serif';
+          ctx.fillText('Huerto Comunitario del CUCSH · UdeG', 240, 548);
+
+          const link = document.createElement('a');
+          link.download = 'placa-qr-' + sp.id + '.png';
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+          showToast('Placa QR descargada en PNG: ' + sp.commonName);
+        }
+
+        // Map Interactivity & Dynamic Leader Lines
+        function getMarkersForZone(zoneId) {
+          return MARKERS.filter(function (m) {
+            const inZone = m.zoneIds.indexOf(zoneId) !== -1;
+            if (!inZone) return false;
+            if (state.mapCategory === 'Todas') return true;
+            return m.category.toLowerCase().indexOf(state.mapCategory.toLowerCase()) !== -1;
+          });
+        }
+
+        function getMarkerCoordsInZone(marker, zoneId) {
+          if (marker.zoneIds[0] === zoneId) return { x: marker.x, y: marker.y };
+          if (marker.altPos) return marker.altPos;
+          const z = getZoneById(zoneId);
+          return z.anchor;
+        }
+
+        function renderSvgMapOverlays() {
+          const markersLayer = document.getElementById('svg-markers-layer');
+          const leadersLayer = document.getElementById('svg-leaders-layer');
+          const readout = document.getElementById('map-hover-readout');
+          if (!markersLayer || !leadersLayer) return;
+
+          // Update active zone highlight class
+          ZONES.forEach(function (z) {
+            const g = document.getElementById('zone-' + z.id);
+            if (!g) return;
+            if (state.hoveredZoneId === z.id || state.selectedZoneId === z.id) {
+              g.classList.add('zone-active');
+            } else {
+              g.classList.remove('zone-active');
+            }
+          });
+
+          // Mode 2: Render all 35 physical markers (#1..#35 + #33b)
+          if (state.mapMode === 'markers') {
+            let html = '';
+            MARKERS.forEach(function (m) {
+              const matchesCat =
+                state.mapCategory === 'Todas' ||
+                m.category.toLowerCase().indexOf(state.mapCategory.toLowerCase()) !== -1;
+              if (!matchesCat) return;
+              const col = getCategoryColor(m.category);
+              const pts = [{ x: m.x, y: m.y }];
+              if (m.altPos) pts.push(m.altPos);
+              pts.forEach(function (pt) {
+                html +=
+                  '<g class="cursor-pointer" onclick="window.openSpeciesModal(\'' + m.speciesId + '\')" role="button" tabindex="0" aria-label="Marcador ' + escapeHtml(m.id) + ' ' + escapeHtml(m.speciesName) + '">' +
+                    '<title>' + escapeHtml(m.id + ' — ' + m.speciesName + ' (' + m.category + ')') + '</title>' +
+                    '<circle cx="' + pt.x + '" cy="' + pt.y + '" r="10.5" fill="#0D100E" stroke="#D4AF37" stroke-width="1.6"/>' +
+                    '<circle cx="' + pt.x + '" cy="' + pt.y + '" r="3" fill="' + col + '" opacity="0.28"/>' +
+                    '<text x="' + pt.x + '" y="' + (pt.y + 3.2) + '" text-anchor="middle" fill="#E6C35C" font-size="8.5" font-weight="700">' + escapeHtml(m.label) + '</text>' +
+                  '</g>';
+              });
+            });
+            markersLayer.innerHTML = html;
+          } else {
+            markersLayer.innerHTML = '';
+          }
+
+          // Dynamic Animated Leader Lines on hovered or focused zone
+          const activeZoneId = state.hoveredZoneId || state.selectedZoneId;
+          if (!activeZoneId) {
+            leadersLayer.innerHTML = '';
+            if (readout) {
+              readout.textContent = 'Zona activa: Ninguna · Pasa o toca una parcela para inspeccionar';
+            }
+            return;
+          }
+
+          const zone = getZoneById(activeZoneId);
+          const zoneMarkers = getMarkersForZone(activeZoneId);
+          if (readout) {
+            readout.textContent = 'Zona activa: ' + zone.name + ' · ' + zoneMarkers.length + ' marcador(es) visible(s)';
+          }
+
+          if (zoneMarkers.length === 0) {
+            // Still show zone summary callout if Biodigestores or filtered empty
+            const lx = zone.labelSide === 'left' ? 12 : zone.labelSide === 'right' ? 968 : Math.min(880, Math.max(170, zone.anchor.x - 85));
+            const ly = zone.labelSide === 'top' ? 14 : zone.labelSide === 'bottom' ? 626 : zone.anchor.y - 18;
+            leadersLayer.innerHTML =
+              '<g pointer-events="none">' +
+                '<line x1="' + zone.anchor.x + '" y1="' + zone.anchor.y + '" x2="' + (lx + 75) + '" y2="' + (ly + 16) + '" stroke="#0D100E" stroke-width="3.6" class="leader-line-anim"/>' +
+                '<line x1="' + zone.anchor.x + '" y1="' + zone.anchor.y + '" x2="' + (lx + 75) + '" y2="' + (ly + 16) + '" stroke="#D4AF37" stroke-width="1.8" class="leader-line-anim"/>' +
+                '<circle cx="' + zone.anchor.x + '" cy="' + zone.anchor.y + '" r="4.5" fill="#E6C35C" stroke="#0D100E" stroke-width="1.4"/>' +
+                '<g class="leader-label-anim">' +
+                  '<rect x="' + lx + '" y="' + ly + '" width="150" height="32" rx="6" fill="#0D100E" stroke="#D4AF37" stroke-width="1.4"/>' +
+                  '<text x="' + (lx + 75) + '" y="' + (ly + 20) + '" text-anchor="middle" fill="#E6C35C" font-size="11" font-weight="700">' + escapeHtml(zone.name) + '</text>' +
+                '</g>' +
+              '</g>';
+            return;
+          }
+
+          // Compute clean non-overlapping margin label coordinates around the SVG perimeter
+          let leaderHtml = '';
+          const total = zoneMarkers.length;
+          zoneMarkers.forEach(function (m, idx) {
+            const pt = getMarkerCoordsInZone(m, activeZoneId);
+            let boxX = 12;
+            let boxY = 48;
+            let boxW = 152;
+            const boxH = 26;
+            let routeSide = zone.labelSide;
+
+            if (zone.id === 'circulo-polinizador') {
+              routeSide = 'pollinator-aisle';
+              boxW = 160;
+              const startX = 162;
+              boxX = startX + idx * 164;
+              boxY = 6;
+            } else if (zone.labelSide === 'left') {
+              boxX = 8;
+              const startY = Math.max(54, 240 - total * 16);
+              boxY = startY + idx * 33;
+            } else if (zone.labelSide === 'right') {
+              boxX = 960;
+              const startY = Math.max(66, 260 - total * 16);
+              boxY = startY + idx * 33;
+            } else if (zone.labelSide === 'top') {
+              const cols = Math.min(total, 5);
+              const row = Math.floor(idx / 5);
+              const col = idx % 5;
+              const span = cols * (boxW + 8);
+              const startX = Math.max(150, Math.min(970 - span, zone.anchor.x - span / 2));
+              boxX = startX + col * (boxW + 8);
+              boxY = 6 + row * 30;
+            } else {
+              if (total <= 6) {
+                const span = total * (boxW + 8);
+                const startX = Math.max(150, Math.min(970 - span, zone.anchor.x - span / 2));
+                boxX = startX + idx * (boxW + 8);
+                boxY = 642;
+              } else {
+                if (idx < 6) {
+                  boxW = 132;
+                  boxX = 158 + idx * 136;
+                  boxY = 644;
+                } else if (idx < 10) {
+                  boxX = 960;
+                  boxY = 390 + (idx - 6) * 34;
+                } else {
+                  boxX = 8;
+                  boxY = 390 + (idx - 10) * 34;
+                }
+              }
+            }
+
+            const targetX = boxX + boxW / 2;
+            const targetY = routeSide === 'top' || routeSide === 'pollinator-aisle' ? boxY + boxH : routeSide === 'bottom' && boxY > 600 ? boxY : boxY + boxH / 2;
+            const edgeX = boxX < pt.x ? boxX + boxW : boxX;
+            let pathD = '';
+            if (routeSide === 'pollinator-aisle') {
+              // Route smoothly through the central horizontal corridor (y=268) and up the gap between Fosa 1 / Círculo 6 / 7 / 8
+              const aisleY = 266 + (idx - 2) * 5;
+              const gapXs = [492, 622, 622, 754, 754];
+              const gx = gapXs[idx % gapXs.length];
+              pathD = 'M ' + pt.x + ' ' + pt.y + ' L ' + pt.x + ' ' + aisleY + ' L ' + gx + ' ' + aisleY + ' L ' + gx + ' 38 L ' + targetX + ' ' + targetY;
+            } else if (zone.labelSide === 'left' || zone.labelSide === 'right' || boxY < 600) {
+              const midX = (pt.x + edgeX) / 2;
+              pathD = 'M ' + pt.x + ' ' + pt.y + ' L ' + midX + ' ' + pt.y + ' L ' + midX + ' ' + (boxY + boxH / 2) + ' L ' + edgeX + ' ' + (boxY + boxH / 2);
+            } else {
+              pathD = 'M ' + pt.x + ' ' + pt.y + ' L ' + pt.x + ' ' + targetY + ' L ' + targetX + ' ' + targetY;
+            }
+            const shortName = m.speciesName.length > 18 ? m.speciesName.slice(0, 17) + '…' : m.speciesName;
+
+            leaderHtml +=
+              '<g pointer-events="none">' +
+                '<path d="' + pathD + '" fill="none" stroke="#0D100E" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" class="leader-line-anim"/>' +
+                '<path d="' + pathD + '" fill="none" stroke="#D4AF37" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="leader-line-anim"/>' +
+                '<circle cx="' + pt.x + '" cy="' + pt.y + '" r="4.2" fill="#E6C35C" stroke="#0D100E" stroke-width="1.3"/>' +
+                '<g class="leader-label-anim">' +
+                  '<rect x="' + boxX + '" y="' + boxY + '" width="' + boxW + '" height="' + boxH + '" rx="6" fill="#0D100E" stroke="#D4AF37" stroke-width="1.2"/>' +
+                  '<text x="' + (boxX + 8) + '" y="' + (boxY + 17) + '" fill="#E6C35C" font-size="10.5" font-weight="700">' + escapeHtml(m.id) + '</text>' +
+                  '<text x="' + (boxX + 34) + '" y="' + (boxY + 17) + '" fill="#F7F6F1" font-size="10" font-weight="600">' + escapeHtml(shortName) + '</text>' +
+                '</g>' +
+              '</g>';
+          });
+
+          leadersLayer.innerHTML = leaderHtml;
+        }
+
+        function bindMapInteractions() {
+          ZONES.forEach(function (z) {
+            const g = document.getElementById('zone-' + z.id);
+            if (!g) return;
+            g.addEventListener('mouseenter', function () {
+              state.hoveredZoneId = z.id;
+              renderSvgMapOverlays();
+            });
+            g.addEventListener('mouseleave', function () {
+              if (state.hoveredZoneId === z.id) {
+                state.hoveredZoneId = null;
+                renderSvgMapOverlays();
+              }
+            });
+            g.addEventListener('focus', function () {
+              state.hoveredZoneId = z.id;
+              renderSvgMapOverlays();
+            });
+            g.addEventListener('blur', function () {
+              if (state.hoveredZoneId === z.id) {
+                state.hoveredZoneId = null;
+                renderSvgMapOverlays();
+              }
+            });
+            g.addEventListener('click', function () {
+              state.selectedZoneId = z.id;
+              renderSvgMapOverlays();
+              window.openZoneModal(z.id);
+            });
+            g.addEventListener('keydown', function (ev) {
+              if (ev.key === 'Enter' || ev.key === ' ') {
+                ev.preventDefault();
+                state.selectedZoneId = z.id;
+                renderSvgMapOverlays();
+                window.openZoneModal(z.id);
+              }
+            });
+          });
+        }
+
+        function renderQuickZoneGrid() {
+          const grid = document.getElementById('zone-quick-grid');
+          if (!grid) return;
+          grid.innerHTML = ZONES.map(function (z) {
+            const count = getMarkersForZone(z.id).length;
+            const subLabel = count > 0 ? count + ' marcador(es)' : z.id === 'biodigestores' ? 'Bioenergía' : 'Policultivo';
+            return (
+              '<button type="button" onclick="window.openZoneModal(\'' + z.id + '\')" ' +
+                'onmouseenter="window.previewZone(\'' + z.id + '\')" onmouseleave="window.previewZone(null)" ' +
+                'class="text-left p-3 rounded-xl bg-white border border-[#161B18]/12 hover:border-[#D4AF37] transition-colors shadow-sm cursor-pointer">' +
+                '<div class="text-xs font-bold text-[#0D100E] truncate">' + escapeHtml(z.name) + '</div>' +
+                '<div class="text-[11px] text-[#2D6A4F] mt-0.5 tabular-nums">' + subLabel + ' · ' + escapeHtml(z.coverage) + ' cob.</div>' +
+              '</button>'
+            );
+          }).join('');
+        }
+        // Modal Management (Escape, Backdrop, Close X)
+        function openModal(title, bodyHtml) {
+          const overlay = document.getElementById('modal-overlay');
+          const titleEl = document.getElementById('modal-title');
+          const bodyEl = document.getElementById('modal-body');
+          if (!overlay || !titleEl || !bodyEl) return;
+          titleEl.textContent = title;
+          bodyEl.innerHTML = bodyHtml;
+          overlay.classList.remove('hidden');
+          document.body.style.overflow = 'hidden';
+        }
+
+        window.closeModal = function () {
+          const overlay = document.getElementById('modal-overlay');
+          if (overlay) overlay.classList.add('hidden');
+          document.body.style.overflow = '';
+          state.selectedZoneId = null;
+          renderSvgMapOverlays();
+        };
+
+        window.handleModalBackdropClick = function (event) {
+          if (event.target && event.target.id === 'modal-overlay') {
+            window.closeModal();
+          }
+        };
+
+        document.addEventListener('keydown', function (ev) {
+          if (ev.key === 'Escape') {
+            const overlay = document.getElementById('modal-overlay');
+            if (overlay && !overlay.classList.contains('hidden')) {
+              window.closeModal();
+            }
+          }
+        });
+
+        // Zone Inspector Modal
+        function getSpeciesInZone(zoneId) {
+          const seen = {};
+          const list = [];
+          MARKERS.forEach(function (m) {
+            if (m.zoneIds.indexOf(zoneId) !== -1) {
+              if (!seen[m.speciesId]) {
+                seen[m.speciesId] = { speciesId: m.speciesId, markers: [] };
+                list.push(seen[m.speciesId]);
+              }
+              seen[m.speciesId].markers.push(m.id);
+              if (m.secondarySpeciesId && !seen[m.secondarySpeciesId]) {
+                seen[m.secondarySpeciesId] = { speciesId: m.secondarySpeciesId, markers: [m.id] };
+                list.push(seen[m.secondarySpeciesId]);
+              }
+            }
+          });
+          state.data.species.forEach(function (sp) {
+            if (sp.zoneIds.indexOf(zoneId) !== -1 && !seen[sp.id]) {
+              seen[sp.id] = { speciesId: sp.id, markers: sp.markers };
+              list.push(seen[sp.id]);
+            }
+          });
+          return list;
+        }
+
+        window.openZoneModal = function (zoneId) {
+          const zone = getZoneById(zoneId);
+          const entries = getSpeciesInZone(zoneId);
+          const firstEntry = entries[0] ? getSpeciesById(entries[0].speciesId) : null;
+
+          const specimenListHtml = entries.length
+            ? entries
+                .map(function (entry, idx) {
+                  const sp = getSpeciesById(entry.speciesId);
+                  if (!sp) return '';
+                  return (
+                    '<button type="button" onclick="window.selectZoneSpecimen(\'' + zone.id + '\', \'' + sp.id + '\')" ' +
+                      'data-zone-sp="' + sp.id + '" ' +
+                      'class="zone-sp-btn w-full text-left p-3 rounded-xl border transition-colors cursor-pointer ' +
+                      (idx === 0 ? 'bg-[#0D100E] text-[#F7F6F1] border-[#D4AF37]' : 'bg-white text-[#161B18] border-[#161B18]/15 hover:border-[#D4AF37]') +
+                      '">' +
+                      '<div class="flex items-center justify-between gap-2">' +
+                        '<span class="font-semibold text-sm">' + escapeHtml(sp.commonName) + '</span>' +
+                        '<span class="text-xs font-mono text-[#D4AF37] tabular-nums">' + escapeHtml(entry.markers.join(', ')) + '</span>' +
+                      '</div>' +
+                      '<div class="text-xs opacity-75 italic">' + escapeHtml(sp.scientificName) + ' · ' + escapeHtml(sp.category) + '</div>' +
+                    '</button>'
+                  );
+                })
+                .join('')
+            : '<div class="p-4 rounded-xl bg-white border border-[#161B18]/15 text-sm text-[#161B18]/75">Estación operativa de compostaje y bioenergía sin cultivos directos en cama.</div>';
+
+          const html =
+            '<div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-[#161B18] text-[#F7F6F1] p-4 rounded-xl border border-[#D4AF37]/40">' +
+              '<div><div class="text-[11px] text-[#D4AF37] font-semibold">Tipo de parcela</div><div class="text-sm font-medium mt-0.5">' + escapeHtml(zone.type) + '</div></div>' +
+              '<div><div class="text-[11px] text-[#D4AF37] font-semibold">Frecuencia de riego</div><div class="text-sm font-medium mt-0.5">' + escapeHtml(zone.irrigation) + '</div></div>' +
+              '<div><div class="text-[11px] text-[#D4AF37] font-semibold">Exposición y cobertura</div><div class="text-sm font-medium mt-0.5 tabular-nums">' + escapeHtml(zone.sun) + ' · ' + escapeHtml(zone.coverage) + '</div></div>' +
+            '</div>' +
+            '<p class="text-sm text-[#161B18]/80">' + escapeHtml(zone.summary) + '</p>' +
+            '<div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">' +
+              '<div class="lg:col-span-5 space-y-2">' +
+                '<h3 class="text-sm font-bold text-[#0D100E]">Ejemplares en esta zona (' + entries.length + ')</h3>' +
+                '<div class="space-y-2 max-h-[340px] overflow-y-auto pr-1">' + specimenListHtml + '</div>' +
+              '</div>' +
+              '<div id="zone-specimen-preview" class="lg:col-span-7 bg-white rounded-xl p-4 border border-[#161B18]/15 space-y-4"></div>' +
+            '</div>';
+
+          openModal('Zona: ' + zone.name, html);
+          if (firstEntry) {
+            window.selectZoneSpecimen(zone.id, firstEntry.id);
+          } else {
+            const prev = document.getElementById('zone-specimen-preview');
+            if (prev) {
+              prev.innerHTML =
+                '<div class="space-y-3">' +
+                  '<h4 class="font-display text-xl font-bold text-[#0D100E]">Estación de Biodigestores y Composta</h4>' +
+                  '<p class="text-sm text-[#161B18]/80">Registra jornadas de volteo, pH, temperatura de pila o cosecha de biol directamente en la bitácora del huerto.</p>' +
+                  '<button type="button" onclick="window.openBitacoraModal(\'' + zone.id + '\', null)" class="px-4 py-2 rounded-lg text-xs font-semibold bg-[#1B4332] text-white cursor-pointer">Registrar cuidado en Bitácora</button>' +
+                '</div>';
+            }
+          }
+        };
+
+        window.selectZoneSpecimen = function (zoneId, speciesId) {
+          const sp = getSpeciesById(speciesId);
+          const preview = document.getElementById('zone-specimen-preview');
+          if (!sp || !preview) return;
+          document.querySelectorAll('.zone-sp-btn').forEach(function (btn) {
+            const isSel = btn.getAttribute('data-zone-sp') === speciesId;
+            btn.className =
+              'zone-sp-btn w-full text-left p-3 rounded-xl border transition-colors cursor-pointer ' +
+              (isSel
+                ? 'bg-[#0D100E] text-[#F7F6F1] border-[#D4AF37]'
+                : 'bg-white text-[#161B18] border-[#161B18]/15 hover:border-[#D4AF37]');
+          });
+
+          const qrUrl = getFichaShareUrl(sp.id);
+          preview.innerHTML =
+            getSpeciesPhotoFrameHtml(sp) +
+            '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">' +
+              '<div class="space-y-1.5 flex-1">' +
+                '<div class="flex items-center gap-2 text-xs text-[#2D6A4F] font-semibold">' +
+                  '<span>' + escapeHtml(sp.category) + '</span>' +
+                  '<span aria-hidden="true">·</span>' +
+                  '<span class="tabular-nums">Marcadores: ' + escapeHtml(sp.markers.join(', ')) + '</span>' +
+                '</div>' +
+                '<h4 class="font-display text-2xl font-bold text-[#0D100E]">' + escapeHtml(sp.commonName) + '</h4>' +
+                '<p class="text-xs italic text-[#161B18]/70">' + escapeHtml(sp.scientificName) + ' (' + escapeHtml(sp.family) + ')</p>' +
+                '<p class="text-sm text-[#161B18]/85 pt-1">' + escapeHtml(sp.properties) + '</p>' +
+              '</div>' +
+              '<div class="shrink-0 bg-[#F7F6F1] p-2 rounded-xl border border-[#161B18]/15 text-center">' +
+                renderQrSvg(qrUrl, 86) +
+                '<div class="text-[10px] font-semibold text-[#0D100E] mt-1">QR Parcela</div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="flex flex-wrap items-center gap-2 pt-2 border-t border-[#161B18]/10">' +
+              '<button type="button" onclick="window.openSpeciesModal(\'' + sp.id + '\')" class="gold-gradient-btn px-4 py-2 rounded-lg text-xs font-bold border border-[#0D100E] cursor-pointer">Abrir Ficha Completa</button>' +
+              '<button type="button" onclick="window.openBitacoraModal(\'' + zoneId + '\', \'' + sp.id + '\')" class="px-4 py-2 rounded-lg text-xs font-semibold bg-[#1B4332] text-white hover:bg-[#2D6A4F] cursor-pointer">Registrar cuidado en Bitácora</button>' +
+            '</div>';
+        };
+
+        // Full Ficha Botánica Modal (with Evolutionary Photo Gallery + History)
+        function buildSpeciesDetailMarkup(sp, compactMobile) {
+          const zoneNames = sp.zoneIds.map(function (zid) { return getZoneById(zid).name; }).join(' · ');
+          const history = state.data.bitacora.filter(function (b) { return b.speciesId === sp.id; });
+          const qrUrl = getFichaShareUrl(sp.id);
+
+          const evoHtml =
+            sp.photos && sp.photos.length
+              ? '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">' +
+                  sp.photos
+                    .map(function (ph, idx) {
+                      return (
+                        '<div class="bg-[#0D100E] text-[#F7F6F1] rounded-xl overflow-hidden border border-[#D4AF37]/50">' +
+                          '<div class="aspect-16-9 bg-[#161B18]">' +
+                            '<img src="' + escapeHtml(ph.url) + '" alt="' + escapeHtml(sp.commonName + ' - ' + ph.stage) + '" referrerpolicy="no-referrer" class="w-full h-full object-cover" />' +
+                          '</div>' +
+                          '<div class="p-2.5 flex items-center justify-between gap-2 text-xs">' +
+                            '<div><div class="font-semibold text-[#E6C35C]">' + escapeHtml(ph.stage) + '</div><div class="text-[11px] opacity-75 tabular-nums">' + escapeHtml(ph.date) + '</div></div>' +
+                            (state.role === 'admin' && !compactMobile
+                              ? '<div class="flex items-center gap-1.5">' +
+                                  '<button type="button" onclick="window.setAsMainPhoto(\'' + sp.id + '\', ' + idx + ')" class="px-2 py-1 rounded bg-[#2D6A4F] text-white text-[10px] font-semibold cursor-pointer">Principal</button>' +
+                                  '<button type="button" onclick="window.deleteEvoPhoto(\'' + sp.id + '\', ' + idx + ')" class="px-2 py-1 rounded bg-red-900/80 text-red-100 text-[10px] font-semibold cursor-pointer">Borrar</button>' +
+                                '</div>'
+                              : '') +
+                          '</div>' +
+                        '</div>'
+                      );
+                    })
+                    .join('') +
+                '</div>'
+              : '<div class="p-4 rounded-xl bg-white border border-[#161B18]/12 text-xs text-[#161B18]/75">Aún no hay fotografías históricas registradas. En Modo Colectivo Admin puedes subir fotos por etapa (Siembra inicial, Crecimiento vegetativo, Floración, Cosecha).</div>';
+
+          const historyHtml = history.length
+            ? '<div class="space-y-2">' +
+                history
+                  .map(function (h) {
+                    return (
+                      '<div class="p-3 rounded-xl bg-white border border-[#161B18]/12 text-xs">' +
+                        '<div class="flex items-center justify-between gap-2 font-semibold text-[#0D100E]">' +
+                          '<span>' + escapeHtml(h.type) + ' · ' + escapeHtml(getZoneById(h.zoneId).name) + '</span>' +
+                          '<span class="tabular-nums text-[#2D6A4F]">' + escapeHtml(h.date) + '</span>' +
+                        '</div>' +
+                        '<p class="text-[#161B18]/80 mt-1">' + escapeHtml(h.notes) + '</p>' +
+                        '<div class="text-[11px] text-[#161B18]/60 mt-1">Responsable: ' + escapeHtml(h.author) + '</div>' +
+                      '</div>'
+                    );
+                  })
+                  .join('') +
+              '</div>'
+            : '<p class="text-xs text-[#161B18]/70">Sin registros recientes para esta especie en la bitácora.</p>';
+
+          return (
+            '<div class="space-y-5">' +
+              getSpeciesPhotoFrameHtml(sp) +
+              '<div class="flex flex-wrap items-start justify-between gap-4">' +
+                '<div>' +
+                  '<div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#2D6A4F]">' +
+                    '<span>' + escapeHtml(sp.category) + '</span>' +
+                    '<span aria-hidden="true">·</span>' +
+                    '<span>' + escapeHtml(sp.family) + '</span>' +
+                    '<span aria-hidden="true">·</span>' +
+                    '<span class="tabular-nums">Marcadores: ' + escapeHtml(sp.markers.join(', ')) + '</span>' +
+                  '</div>' +
+                  '<h3 class="font-display text-3xl font-bold text-[#0D100E] mt-1">' + escapeHtml(sp.commonName) + '</h3>' +
+                  '<p class="text-sm italic text-[#161B18]/75">' + escapeHtml(sp.scientificName) + '</p>' +
+                  '<p class="text-xs text-[#161B18]/70 mt-1">Origen: ' + escapeHtml(sp.origin) + '</p>' +
+                '</div>' +
+                (!compactMobile
+                  ? '<div class="flex flex-wrap items-center gap-2">' +
+                      '<button type="button" onclick="window.openPhotoUploadModal(\'' + sp.id + '\')" class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#0D100E] text-[#E6C35C] border border-[#D4AF37] cursor-pointer">📷 Actualizar / Subir Foto</button>' +
+                      (state.role === 'admin'
+                        ? '<button type="button" onclick="window.openSpeciesFormModal(\'' + sp.id + '\')" class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-white text-[#0D100E] border border-[#161B18]/25 hover:border-[#D4AF37] cursor-pointer">Editar Ficha</button>'
+                        : '') +
+                      '<button type="button" onclick="window.openBitacoraModal(\'' + (sp.zoneIds[0] || 'cuadrante-3') + '\', \'' + sp.id + '\')" class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#1B4332] text-white cursor-pointer">+ Registrar Cuidado</button>' +
+                    '</div>'
+                  : '') +
+              '</div>' +
+              '<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-4 rounded-xl border border-[#161B18]/12 text-xs">' +
+                '<div><div class="font-bold text-[#2D6A4F]">Parcelas donde habita</div><div class="mt-1 text-[#161B18]">' + escapeHtml(zoneNames) + '</div></div>' +
+                '<div><div class="font-bold text-[#2D6A4F]">Riego y luz solar</div><div class="mt-1 text-[#161B18]">' + escapeHtml(sp.water) + ' · ' + escapeHtml(sp.sun) + '</div></div>' +
+                '<div><div class="font-bold text-[#2D6A4F]">Ciclo de vida</div><div class="mt-1 text-[#161B18]">' + escapeHtml(sp.cycle) + '</div></div>' +
+              '</div>' +
+              '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">' +
+                '<div class="bg-white p-4 rounded-xl border border-[#161B18]/12">' +
+                  '<h4 class="text-sm font-bold text-[#0D100E] mb-1.5">Propiedades medicinales, comestibles y ecológicas</h4>' +
+                  '<p class="text-sm text-[#161B18]/85 leading-relaxed">' + escapeHtml(sp.properties) + '</p>' +
+                '</div>' +
+                '<div class="bg-white p-4 rounded-xl border border-[#161B18]/12">' +
+                  '<h4 class="text-sm font-bold text-[#0D100E] mb-1.5">Guía práctica de cuidados en campo</h4>' +
+                  '<p class="text-sm text-[#161B18]/85 leading-relaxed">' + escapeHtml(sp.care) + '</p>' +
+                '</div>' +
+              '</div>' +
+              '<div>' +
+                '<div class="flex items-center justify-between gap-2 mb-2">' +
+                  '<h4 class="text-sm font-bold text-[#0D100E]">Evolución Fotográfica de la Planta</h4>' +
+                  (!compactMobile ? '<button type="button" onclick="window.openPhotoUploadModal(\'' + sp.id + '\')" class="text-xs font-semibold text-[#2D6A4F] hover:underline cursor-pointer">+ Agregar etapa</button>' : '') +
+                '</div>' +
+                evoHtml +
+              '</div>' +
+              '<div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">' +
+                '<div class="md:col-span-8">' +
+                  '<h4 class="text-sm font-bold text-[#0D100E] mb-2">Historial de mantenimiento registrado</h4>' +
+                  historyHtml +
+                '</div>' +
+                '<div class="md:col-span-4 bg-[#0D100E] text-[#F7F6F1] p-4 rounded-xl border border-[#D4AF37] text-center space-y-2">' +
+                  '<div class="text-xs font-bold text-[#E6C35C]">Placa QR en Campo</div>' +
+                  '<div class="inline-block bg-white p-2 rounded-lg">' + renderQrSvg(qrUrl, 110) + '</div>' +
+                  '<div class="text-[11px] text-[#F7F6F1]/75 font-mono break-all">#ficha/' + escapeHtml(sp.id) + '</div>' +
+                  (!compactMobile ? '<button type="button" onclick="window.downloadQrPlaquePng(\'' + sp.id + '\')" class="w-full gold-gradient-btn py-1.5 px-3 rounded-lg text-xs font-bold cursor-pointer">Descargar Placa PNG</button>' : '') +
+                '</div>' +
+              '</div>' +
+            '</div>'
+          );
+        }
+
+        window.openSpeciesModal = function (speciesId) {
+          const sp = getSpeciesById(speciesId);
+          if (!sp) return;
+          openModal(sp.commonName + ' — Ficha Botánica', buildSpeciesDetailMarkup(sp, false));
+        };
+
+        window.downloadQrPlaquePng = downloadQrPlaquePng;
+
+        // Photo Upload / Compression Modal (Admin or direct prompt)
+        window.openPhotoUploadModal = function (speciesId) {
+          if (state.role !== 'admin') {
+            window.setRole('admin');
+            showToast('Activado Modo Colectivo Admin para gestionar fotografías');
+          }
+          const sp = getSpeciesById(speciesId);
+          if (!sp) return;
+          const today = new Date().toISOString().slice(0, 10);
+          const html =
+            '<form id="photo-upload-form" onsubmit="window.handlePhotoSubmit(event, \'' + sp.id + '\')" class="space-y-4">' +
+              '<p class="text-sm text-[#161B18]/80">Sube una fotografía desde tu cámara/galería (se comprime automáticamente en el navegador a máx. 800px WebP/JPEG para carga rápida en campo) o pega una URL.</p>' +
+              '<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">' +
+                '<div>' +
+                  '<label for="photo-stage" class="block text-xs font-semibold mb-1">Etapa evolutiva</label>' +
+                  '<select id="photo-stage" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm">' +
+                    '<option value="Crecimiento vegetativo">Crecimiento vegetativo</option>' +
+                    '<option value="Siembra inicial">Siembra inicial</option>' +
+                    '<option value="Floración">Floración</option>' +
+                    '<option value="Fructificación / Cosecha">Fructificación / Cosecha</option>' +
+                    '<option value="Poda / Mantenimiento">Poda / Mantenimiento</option>' +
+                  '</select>' +
+                '</div>' +
+                '<div>' +
+                  '<label for="photo-date" class="block text-xs font-semibold mb-1">Fecha de captura</label>' +
+                  '<input id="photo-date" type="date" value="' + today + '" required class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm" />' +
+                '</div>' +
+              '</div>' +
+              '<div>' +
+                '<label for="photo-file-input" class="block text-xs font-semibold mb-1">Tomar o seleccionar fotografía</label>' +
+                '<input id="photo-file-input" type="file" accept="image/*" capture="environment" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm" />' +
+              '</div>' +
+              '<div>' +
+                '<label for="photo-url-input" class="block text-xs font-semibold mb-1">O pegar URL de imagen externa</label>' +
+                '<input id="photo-url-input" type="url" placeholder="https://..." class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm" />' +
+              '</div>' +
+              '<label class="flex items-center gap-2 text-xs font-medium text-[#0D100E]">' +
+                '<input id="photo-set-main" type="checkbox" checked class="rounded border-[#161B18]/30" />' +
+                'Establecer también como fotografía principal de la ficha' +
+              '</label>' +
+              '<div class="flex justify-end gap-2 pt-2">' +
+                '<button type="button" onclick="window.openSpeciesModal(\'' + sp.id + '\')" class="px-4 py-2 rounded-lg text-xs font-semibold bg-white border border-[#161B18]/20 cursor-pointer">Cancelar</button>' +
+                '<button type="submit" class="gold-gradient-btn px-5 py-2 rounded-lg text-xs font-bold border border-[#0D100E] cursor-pointer">Guardar Fotografía</button>' +
+              '</div>' +
+            '</form>';
+          openModal('Actualizar / Subir Foto · ' + sp.commonName, html);
+        };
+
+        window.handlePhotoSubmit = function (ev, speciesId) {
+          ev.preventDefault();
+          const sp = getSpeciesById(speciesId);
+          if (!sp) return;
+          const fileInput = document.getElementById('photo-file-input');
+          const urlInput = document.getElementById('photo-url-input');
+          const stage = document.getElementById('photo-stage').value;
+          const date = document.getElementById('photo-date').value || new Date().toISOString().slice(0, 10);
+          const setMain = document.getElementById('photo-set-main').checked;
+          const file = fileInput && fileInput.files && fileInput.files[0];
+          const urlVal = urlInput ? urlInput.value.trim() : '';
+
+          function applyPhoto(finalUrl) {
+            if (!finalUrl) {
+              showToast('Selecciona un archivo de imagen o ingresa una URL válida.', 'error');
+              return;
+            }
+            if (!Array.isArray(sp.photos)) sp.photos = [];
+            sp.photos.unshift({ url: finalUrl, stage: stage, date: date });
+            if (setMain || !sp.mainPhoto) sp.mainPhoto = finalUrl;
+            if (saveState()) {
+              renderCatalog();
+              window.openSpeciesModal(sp.id);
+              showToast('Fotografía guardada y optimizada para ' + sp.commonName);
+            }
+          }
+
+          if (file) {
+            compressImageFile(file)
+              .then(applyPhoto)
+              .catch(function (err) { showToast(err.message || 'No se pudo procesar la foto', 'error'); });
+          } else {
+            applyPhoto(urlVal);
+          }
+        };
+
+        window.setAsMainPhoto = function (speciesId, photoIdx) {
+          const sp = getSpeciesById(speciesId);
+          if (!sp || !sp.photos || !sp.photos[photoIdx]) return;
+          sp.mainPhoto = sp.photos[photoIdx].url;
+          saveState();
+          renderCatalog();
+          window.openSpeciesModal(sp.id);
+          showToast('Foto principal actualizada');
+        };
+
+        window.deleteEvoPhoto = function (speciesId, photoIdx) {
+          const sp = getSpeciesById(speciesId);
+          if (!sp || !sp.photos) return;
+          const removed = sp.photos.splice(photoIdx, 1)[0];
+          if (removed && sp.mainPhoto === removed.url) {
+            sp.mainPhoto = sp.photos[0] ? sp.photos[0].url : '';
+          }
+          saveState();
+          renderCatalog();
+          window.openSpeciesModal(sp.id);
+          showToast('Fotografía eliminada del historial');
+        };
+
+        // Create / Edit Species Modal (Admin)
+        window.openSpeciesFormModal = function (speciesId) {
+          const sp = speciesId ? getSpeciesById(speciesId) : null;
+          const zoneCheckboxes = ZONES.map(function (z) {
+            const checked = sp && sp.zoneIds.indexOf(z.id) !== -1 ? 'checked' : '';
+            return (
+              '<label class="inline-flex items-center gap-1.5 text-xs bg-white px-2.5 py-1.5 rounded-lg border border-[#161B18]/15">' +
+                '<input type="checkbox" name="sp-zones" value="' + z.id + '" ' + checked + '/>' +
+                escapeHtml(z.name) +
+              '</label>'
+            );
+          }).join('');
+
+          const html =
+            '<form onsubmit="window.handleSpeciesFormSubmit(event, \'' + (sp ? sp.id : '') + '\')" class="space-y-4">' +
+              '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">' +
+                '<div><label class="block text-xs font-semibold mb-1">Nombre común *</label><input id="sp-common" required value="' + escapeHtml(sp ? sp.commonName : '') + '" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm"/></div>' +
+                '<div><label class="block text-xs font-semibold mb-1">Nombre científico *</label><input id="sp-sci" required value="' + escapeHtml(sp ? sp.scientificName : '') + '" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm italic"/></div>' +
+                '<div><label class="block text-xs font-semibold mb-1">Familia botánica</label><input id="sp-family" value="' + escapeHtml(sp ? sp.family : '') + '" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm"/></div>' +
+                '<div><label class="block text-xs font-semibold mb-1">Categoría</label><select id="sp-cat" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm">' +
+                  ['Comestible', 'Medicinal', 'Polinizadora', 'Árbol', 'Aromática', 'Aromática / Medicinal'].map(function (c) {
+                    return '<option value="' + c + '" ' + (sp && sp.category === c ? 'selected' : '') + '>' + c + '</option>';
+                  }).join('') +
+                '</select></div>' +
+                '<div><label class="block text-xs font-semibold mb-1">Origen</label><input id="sp-origin" value="' + escapeHtml(sp ? sp.origin : '') + '" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm"/></div>' +
+                '<div><label class="block text-xs font-semibold mb-1">Marcadores (separados por coma)</label><input id="sp-markers" value="' + escapeHtml(sp ? sp.markers.join(', ') : '') + '" placeholder="#36" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm"/></div>' +
+                '<div><label class="block text-xs font-semibold mb-1">Riego</label><input id="sp-water" value="' + escapeHtml(sp ? sp.water : '') + '" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm"/></div>' +
+                '<div><label class="block text-xs font-semibold mb-1">Luz solar y ciclo</label><input id="sp-sun" value="' + escapeHtml(sp ? sp.sun : '') + '" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm"/></div>' +
+              '</div>' +
+              '<div><label class="block text-xs font-semibold mb-1">Zonas donde habita</label><div class="flex flex-wrap gap-2">' + zoneCheckboxes + '</div></div>' +
+              '<div><label class="block text-xs font-semibold mb-1">Propiedades medicinales, comestibles o ecológicas</label><textarea id="sp-props" rows="2" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm">' + escapeHtml(sp ? sp.properties : '') + '</textarea></div>' +
+              '<div><label class="block text-xs font-semibold mb-1">Guía de cuidados</label><textarea id="sp-care" rows="2" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm">' + escapeHtml(sp ? sp.care : '') + '</textarea></div>' +
+              '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">' +
+                '<div><label class="block text-xs font-semibold mb-1">Subir foto principal (compresión automática)</label><input id="sp-photo-file" type="file" accept="image/*" capture="environment" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-xs"/></div>' +
+                '<div><label class="block text-xs font-semibold mb-1">O URL de foto principal</label><input id="sp-photo-url" type="url" value="' + escapeHtml(sp && sp.mainPhoto && sp.mainPhoto.indexOf('data:') !== 0 ? sp.mainPhoto : '') + '" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm"/></div>' +
+              '</div>' +
+              '<div class="flex justify-end gap-2 pt-2">' +
+                '<button type="button" onclick="window.closeModal()" class="px-4 py-2 rounded-lg text-xs font-semibold bg-white border border-[#161B18]/20 cursor-pointer">Cancelar</button>' +
+                '<button type="submit" class="gold-gradient-btn px-5 py-2 rounded-lg text-xs font-bold border border-[#0D100E] cursor-pointer">Guardar Ficha Botánica</button>' +
+              '</div>' +
+            '</form>';
+
+          openModal(sp ? 'Editar Ficha · ' + sp.commonName : 'Nueva Especie Botánica', html);
+        };
+
+        window.handleSpeciesFormSubmit = function (ev, existingId) {
+          ev.preventDefault();
+          const commonName = document.getElementById('sp-common').value.trim();
+          const scientificName = document.getElementById('sp-sci').value.trim();
+          if (!commonName || !scientificName) return;
+
+          const checkedZones = Array.from(document.querySelectorAll('input[name="sp-zones"]:checked')).map(function (c) { return c.value; });
+          const markersRaw = document.getElementById('sp-markers').value.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+          const photoFile = document.getElementById('sp-photo-file').files[0];
+          const photoUrl = document.getElementById('sp-photo-url').value.trim();
+
+          function commit(newPhoto) {
+            if (existingId) {
+              const sp = getSpeciesById(existingId);
+              if (sp) {
+                sp.commonName = commonName;
+                sp.scientificName = scientificName;
+                sp.family = document.getElementById('sp-family').value.trim() || sp.family;
+                sp.category = document.getElementById('sp-cat').value;
+                sp.origin = document.getElementById('sp-origin').value.trim() || sp.origin;
+                sp.markers = markersRaw.length ? markersRaw : sp.markers;
+                sp.water = document.getElementById('sp-water').value.trim() || sp.water;
+                sp.sun = document.getElementById('sp-sun').value.trim() || sp.sun;
+                sp.zoneIds = checkedZones.length ? checkedZones : sp.zoneIds;
+                sp.properties = document.getElementById('sp-props').value.trim();
+                sp.care = document.getElementById('sp-care').value.trim();
+                if (newPhoto) {
+                  sp.mainPhoto = newPhoto;
+                  sp.photos.unshift({ url: newPhoto, stage: 'Actualización en campo', date: new Date().toISOString().slice(0, 10) });
+                }
+              }
+            } else {
+              const slug = commonName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now().toString().slice(-4);
+              const created = {
+                id: slug,
+                commonName: commonName,
+                scientificName: scientificName,
+                family: document.getElementById('sp-family').value.trim() || 'Por clasificar',
+                origin: document.getElementById('sp-origin').value.trim() || 'En registro',
+                category: document.getElementById('sp-cat').value,
+                markers: markersRaw.length ? markersRaw : ['#Nuevo'],
+                zoneIds: checkedZones.length ? checkedZones : ['cuadrante-3'],
+                water: document.getElementById('sp-water').value.trim() || 'Moderado',
+                sun: document.getElementById('sp-sun').value.trim() || 'Sol pleno',
+                cycle: 'En observación',
+                properties: document.getElementById('sp-props').value.trim() || 'Especie comunitaria del Huerto CUCSH.',
+                care: document.getElementById('sp-care').value.trim() || 'Seguimiento semanal en bitácora.',
+                mainPhoto: newPhoto || '',
+                photos: newPhoto ? [{ url: newPhoto, stage: 'Siembra inicial', date: new Date().toISOString().slice(0, 10) }] : []
+              };
+              state.data.species.push(created);
+            }
+            saveState();
+            renderCatalog();
+            renderQrPlaques();
+            populateSelectOptions();
+            window.closeModal();
+            showToast('Ficha botánica guardada correctamente');
+          }
+
+          if (photoFile) {
+            compressImageFile(photoFile).then(commit).catch(function (e) { showToast(e.message, 'error'); });
+          } else {
+            commit(photoUrl);
+          }
+        };
+        // Module 2 Renderers: Catalog, QR Plaques, QR Simulator
+        function renderCatalog() {
+          const grid = document.getElementById('species-grid');
+          const countEl = document.getElementById('fichas-count-line');
+          if (!grid) return;
+          const q = (document.getElementById('fichas-search')?.value || '').trim().toLowerCase().replace(/^#/, '');
+          const zf = document.getElementById('fichas-zone-filter')?.value || 'Todas';
+          const cf = document.getElementById('fichas-cat-filter')?.value || 'Todas';
+
+          const filtered = state.data.species.filter(function (sp) {
+            if (zf !== 'Todas' && sp.zoneIds.indexOf(zf) === -1) return false;
+            if (cf !== 'Todas' && sp.category.toLowerCase().indexOf(cf.toLowerCase()) === -1) return false;
+            if (!q) return true;
+            return (
+              sp.commonName.toLowerCase().indexOf(q) !== -1 ||
+              sp.scientificName.toLowerCase().indexOf(q) !== -1 ||
+              sp.properties.toLowerCase().indexOf(q) !== -1 ||
+              sp.markers.some(function (m) {
+                const clean = m.toLowerCase().replace(/^#/, '');
+                return clean === q || clean.indexOf(q) !== -1;
+              })
+            );
+          });
+
+          if (countEl) {
+            countEl.textContent = 'Mostrando ' + filtered.length + ' de ' + state.data.species.length + ' especies registradas';
+          }
+
+          if (!filtered.length) {
+            grid.innerHTML =
+              '<div class="col-span-full bg-white rounded-2xl p-8 border border-[#161B18]/12 text-center text-sm text-[#161B18]/75">No se encontraron especies con los filtros actuales. Prueba buscar otro nombre o marcador (#1 a #35).</div>';
+            return;
+          }
+
+          grid.innerHTML = filtered
+            .map(function (sp) {
+              const zonesText = sp.zoneIds.map(function (id) { return getZoneById(id).name; }).join(', ');
+              return (
+                '<article class="bg-white rounded-2xl border border-[#161B18]/12 shadow-sm overflow-hidden flex flex-col justify-between hover:border-[#D4AF37] transition-colors">' +
+                  '<div class="p-3 pb-0">' + getSpeciesPhotoFrameHtml(sp) + '</div>' +
+                  '<div class="p-4 flex-1 flex flex-col justify-between gap-3">' +
+                    '<div>' +
+                      '<div class="text-xs font-semibold text-[#2D6A4F] flex flex-wrap items-center gap-1.5">' +
+                        '<span>' + escapeHtml(sp.category) + '</span>' +
+                        '<span aria-hidden="true">·</span>' +
+                        '<span class="tabular-nums">' + escapeHtml(sp.markers.join(', ')) + '</span>' +
+                      '</div>' +
+                      '<h3 class="font-display text-2xl font-bold text-[#0D100E] mt-1">' + escapeHtml(sp.commonName) + '</h3>' +
+                      '<p class="text-xs italic text-[#161B18]/70">' + escapeHtml(sp.scientificName) + '</p>' +
+                      '<p class="text-xs text-[#161B18]/80 mt-2 line-clamp-2">' + escapeHtml(sp.properties) + '</p>' +
+                      '<p class="text-[11px] text-[#1B4332] font-medium mt-2">Zonas: ' + escapeHtml(zonesText) + '</p>' +
+                    '</div>' +
+                    '<div class="flex flex-wrap items-center gap-2 pt-2 border-t border-[#161B18]/10">' +
+                      '<button type="button" onclick="window.openSpeciesModal(\'' + sp.id + '\')" class="flex-1 px-3 py-2 rounded-lg text-xs font-bold bg-[#0D100E] text-[#E6C35C] hover:bg-[#161B18] cursor-pointer">Ver Ficha</button>' +
+                      '<button type="button" onclick="window.openPhotoUploadModal(\'' + sp.id + '\')" class="px-3 py-2 rounded-lg text-xs font-semibold bg-[#F7F6F1] text-[#0D100E] border border-[#161B18]/20 hover:border-[#D4AF37] cursor-pointer" title="Actualizar o subir foto">📷 Foto</button>' +
+                    '</div>' +
+                  '</div>' +
+                '</article>'
+              );
+            })
+            .join('');
+        }
+
+        function renderQrPlaques() {
+          const grid = document.getElementById('qr-plaques-grid');
+          if (!grid) return;
+          grid.innerHTML = state.data.species
+            .map(function (sp) {
+              const url = getFichaShareUrl(sp.id);
+              const zones = sp.zoneIds.map(function (id) { return getZoneById(id).name; }).join(' · ');
+              return (
+                '<div class="print-break-avoid bg-[#0D100E] text-[#F7F6F1] rounded-2xl p-5 border-2 border-[#D4AF37] flex flex-col items-center text-center gap-3 shadow-md">' +
+                  '<div>' +
+                    '<div class="text-[11px] font-semibold text-[#52B788]">Huerto Comunitario CUCSH · UdeG</div>' +
+                    '<h3 class="font-display text-2xl font-bold text-[#E6C35C] mt-0.5">' + escapeHtml(sp.commonName) + '</h3>' +
+                    '<p class="text-xs italic text-[#F7F6F1]/75">' + escapeHtml(sp.scientificName) + '</p>' +
+                  '</div>' +
+                  '<div class="bg-white p-2.5 rounded-xl">' + renderQrSvg(url, 138) + '</div>' +
+                  '<div class="text-xs space-y-1">' +
+                    '<div class="font-bold text-[#E6C35C] tabular-nums">Marcadores: ' + escapeHtml(sp.markers.join(', ')) + '</div>' +
+                    '<div class="text-[11px] text-[#F7F6F1]/80">' + escapeHtml(zones) + '</div>' +
+                  '</div>' +
+                  '<div class="flex items-center gap-2 w-full pt-1">' +
+                    '<button type="button" onclick="window.downloadQrPlaquePng(\'' + sp.id + '\')" class="flex-1 gold-gradient-btn py-2 px-3 rounded-lg text-xs font-bold cursor-pointer">Descargar PNG</button>' +
+                    '<button type="button" onclick="window.openSpeciesModal(\'' + sp.id + '\')" class="px-3 py-2 rounded-lg text-xs font-semibold bg-[#161B18] text-[#E6C35C] border border-[#D4AF37]/40 cursor-pointer">Ficha</button>' +
+                  '</div>' +
+                '</div>'
+              );
+            })
+            .join('');
+        }
+
+        window.setFichasSubView = function (sub) {
+          state.fichasSubView = sub;
+          const catBox = document.getElementById('fichas-catalog-container');
+          const filterBar = document.getElementById('fichas-filter-bar');
+          const plaquesBox = document.getElementById('fichas-plaques-container');
+
+          catBox.classList.toggle('hidden', sub !== 'catalog');
+          filterBar.classList.toggle('hidden', sub !== 'catalog');
+          plaquesBox.classList.toggle('hidden', sub !== 'qr-plaques');
+
+          const activeCls = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-[#0D100E] text-[#E6C35C] border border-[#D4AF37] cursor-pointer';
+          const idleCls = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-white text-[#161B18] border border-[#161B18]/20 hover:border-[#D4AF37] cursor-pointer';
+
+          document.getElementById('subview-btn-catalog').className = sub === 'catalog' ? activeCls : idleCls;
+          document.getElementById('subview-btn-plaques').className = sub === 'qr-plaques' ? activeCls : idleCls;
+
+          if (sub === 'qr-plaques') renderQrPlaques();
+        };
+
+        window.handleSpeciesSearch = function () {
+          renderCatalog();
+        };
+
+        // Module 3: Kanban Board, Bitácora, Notices & Instagram
+        const KANBAN_COLS = [
+          { id: 'todo', title: 'Por Hacer / Pendiente' },
+          { id: 'progress', title: 'En Progreso' },
+          { id: 'verify', title: 'Verificación en Parcela' },
+          { id: 'done', title: 'Completado' }
+        ];
+
+        window.renderKanbanBoard = function () {
+          const board = document.getElementById('kanban-board');
+          if (!board) return;
+          const catFilter = document.getElementById('kanban-cat-filter')?.value || 'Todas';
+          const zoneFilter = document.getElementById('kanban-zone-filter')?.value || 'Todas';
+
+          const filtered = state.data.tasks.filter(function (t) {
+            if (catFilter !== 'Todas' && t.category !== catFilter) return false;
+            if (zoneFilter !== 'Todas' && t.zoneId !== zoneFilter) return false;
+            return true;
+          });
+
+          board.innerHTML = KANBAN_COLS.map(function (col, colIdx) {
+            const colTasks = filtered.filter(function (t) { return t.status === col.id; });
+            const cardsHtml = colTasks.length
+              ? colTasks
+                  .map(function (t) {
+                    const z = getZoneById(t.zoneId);
+                    const prevCol = colIdx > 0 ? KANBAN_COLS[colIdx - 1].id : null;
+                    const nextCol = colIdx < KANBAN_COLS.length - 1 ? KANBAN_COLS[colIdx + 1].id : null;
+                    return (
+                      '<div draggable="true" ondragstart="window.onTaskDragStart(event, \'' + t.id + '\')" ' +
+                        'class="bg-[#F7F6F1] rounded-xl p-3.5 border border-[#161B18]/15 hover:border-[#D4AF37] space-y-2.5 cursor-grab active:cursor-grabbing">' +
+                        '<div class="text-[11px] font-semibold text-[#2D6A4F]">' + escapeHtml(t.category) + '</div>' +
+                        '<h4 class="text-sm font-bold text-[#0D100E] leading-snug">' + escapeHtml(t.title) + '</h4>' +
+                        '<div class="text-xs text-[#161B18]/75 space-y-0.5 tabular-nums">' +
+                          '<div>Zona: <span class="font-semibold">' + escapeHtml(z.name) + '</span></div>' +
+                          '<div>Responsable: ' + escapeHtml(t.assignee) + ' · ' + escapeHtml(t.due || '') + '</div>' +
+                        '</div>' +
+                        '<div class="flex items-center justify-between gap-1.5 pt-1 border-t border-[#161B18]/10">' +
+                          '<div class="flex items-center gap-1">' +
+                            (prevCol ? '<button type="button" onclick="window.moveTask(\'' + t.id + '\', \'' + prevCol + '\')" aria-label="Mover a columna anterior" class="px-2 py-1 rounded bg-white border border-[#161B18]/20 text-xs font-bold hover:border-[#D4AF37] cursor-pointer">←</button>' : '') +
+                            (nextCol ? '<button type="button" onclick="window.moveTask(\'' + t.id + '\', \'' + nextCol + '\')" aria-label="Mover a columna siguiente" class="px-2 py-1 rounded bg-[#0D100E] text-[#E6C35C] text-xs font-bold cursor-pointer">→</button>' : '') +
+                          '</div>' +
+                          (state.role === 'admin'
+                            ? '<button type="button" onclick="window.deleteTask(\'' + t.id + '\')" class="text-[11px] text-red-700 hover:underline font-semibold cursor-pointer">Eliminar</button>'
+                            : '') +
+                        '</div>' +
+                      '</div>'
+                    );
+                  })
+                  .join('')
+              : '<div class="text-xs text-[#161B18]/50 text-center py-6 border border-dashed border-[#161B18]/15 rounded-xl">Sin tareas en esta columna</div>';
+
+            return (
+              '<div ondragover="window.onTaskDragOver(event)" ondrop="window.onTaskDrop(event, \'' + col.id + '\')" ' +
+                'class="bg-white rounded-2xl p-4 border border-[#161B18]/12 flex flex-col gap-3 min-h-[260px]">' +
+                '<div class="flex items-center justify-between gap-2 pb-2 border-b border-[#161B18]/10">' +
+                  '<h3 class="text-sm font-bold text-[#0D100E]">' + escapeHtml(col.title) + '</h3>' +
+                  '<span class="text-xs font-bold text-[#D4AF37] bg-[#0D100E] px-2 py-0.5 rounded-md tabular-nums">' + colTasks.length + '</span>' +
+                '</div>' +
+                '<div class="space-y-2.5 flex-1">' + cardsHtml + '</div>' +
+              '</div>'
+            );
+          }).join('');
+        };
+
+        window.onTaskDragStart = function (ev, taskId) {
+          state.dragTaskId = taskId;
+          if (ev.dataTransfer) ev.dataTransfer.setData('text/plain', taskId);
+        };
+        window.onTaskDragOver = function (ev) {
+          ev.preventDefault();
+        };
+        window.onTaskDrop = function (ev, targetStatus) {
+          ev.preventDefault();
+          const id = state.dragTaskId || (ev.dataTransfer && ev.dataTransfer.getData('text/plain'));
+          if (id) window.moveTask(id, targetStatus);
+          state.dragTaskId = null;
+        };
+
+        window.moveTask = function (taskId, newStatus) {
+          const task = state.data.tasks.find(function (t) { return t.id === taskId; });
+          if (!task) return;
+          task.status = newStatus;
+          saveState();
+          window.renderKanbanBoard();
+          showToast('Tarea movida correctamente');
+        };
+
+        window.deleteTask = function (taskId) {
+          state.data.tasks = state.data.tasks.filter(function (t) { return t.id !== taskId; });
+          saveState();
+          window.renderKanbanBoard();
+          showToast('Tarea eliminada');
+        };
+
+        window.openTaskModal = function () {
+          const zoneOpts = ZONES.map(function (z) { return '<option value="' + z.id + '">' + escapeHtml(z.name) + '</option>'; }).join('');
+          const today = new Date().toISOString().slice(0, 10);
+          const html =
+            '<form onsubmit="window.handleTaskSubmit(event)" class="space-y-4">' +
+              '<div><label class="block text-xs font-semibold mb-1">Descripción de la tarea *</label><input id="task-title" required placeholder="Ej. Revisar goteo en Círculo 6" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm"/></div>' +
+              '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">' +
+                '<div><label class="block text-xs font-semibold mb-1">Categoría</label><select id="task-cat" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm">' +
+                  '<option>Mantenimiento Botánico y Riego</option>' +
+                  '<option>Señalética y Placas QR en Campo</option>' +
+                  '<option>Biodigestores y Composta</option>' +
+                  '<option>Talleres y Voluntariado</option>' +
+                '</select></div>' +
+                '<div><label class="block text-xs font-semibold mb-1">Zona del huerto</label><select id="task-zone" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm">' + zoneOpts + '</select></div>' +
+                '<div><label class="block text-xs font-semibold mb-1">Responsable *</label><input id="task-assignee" required placeholder="Ej. Brigada Tarde" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm"/></div>' +
+                '<div><label class="block text-xs font-semibold mb-1">Fecha objetivo</label><input id="task-due" type="date" value="' + today + '" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm"/></div>' +
+              '</div>' +
+              '<div class="flex justify-end gap-2 pt-2">' +
+                '<button type="button" onclick="window.closeModal()" class="px-4 py-2 rounded-lg text-xs font-semibold bg-white border border-[#161B18]/20 cursor-pointer">Cancelar</button>' +
+                '<button type="submit" class="gold-gradient-btn px-5 py-2 rounded-lg text-xs font-bold border border-[#0D100E] cursor-pointer">Crear Tarea</button>' +
+              '</div>' +
+            '</form>';
+          openModal('Nueva Tarea en Tablero', html);
+        };
+
+        window.handleTaskSubmit = function (ev) {
+          ev.preventDefault();
+          const title = document.getElementById('task-title').value.trim();
+          const assignee = document.getElementById('task-assignee').value.trim();
+          if (!title || !assignee) return;
+          state.data.tasks.unshift({
+            id: 't-' + Date.now(),
+            title: title,
+            category: document.getElementById('task-cat').value,
+            zoneId: document.getElementById('task-zone').value,
+            assignee: assignee,
+            due: document.getElementById('task-due').value,
+            status: 'todo'
+          });
+          saveState();
+          window.renderKanbanBoard();
+          window.closeModal();
+          showToast('Nueva tarea agregada al tablero');
+        };
+
+        // Bitácora Digital
+        window.renderBitacora = function () {
+          const listEl = document.getElementById('bitacora-list');
+          if (!listEl) return;
+          const filter = document.getElementById('bitacora-type-filter')?.value || 'Todas';
+          const items = state.data.bitacora.filter(function (b) {
+            return filter === 'Todas' || b.type === filter;
+          });
+          if (!items.length) {
+            listEl.innerHTML = '<p class="text-xs text-[#161B18]/60 py-6 text-center">No hay registros en la bitácora para esta labor.</p>';
+            return;
+          }
+          listEl.innerHTML = items
+            .map(function (b) {
+              const z = getZoneById(b.zoneId);
+              const sp = b.speciesId ? getSpeciesById(b.speciesId) : null;
+              return (
+                '<div class="py-3 space-y-1">' +
+                  '<div class="flex flex-wrap items-center justify-between gap-2">' +
+                    '<div class="text-xs font-bold text-[#0D100E]">' +
+                      escapeHtml(b.type) + ' · <span class="text-[#2D6A4F]">' + escapeHtml(z.name) + '</span>' +
+                      (sp ? ' · ' + escapeHtml(sp.commonName) : '') +
+                    '</div>' +
+                    '<span class="text-xs font-medium text-[#161B18]/65 tabular-nums">' + escapeHtml(b.date) + '</span>' +
+                  '</div>' +
+                  '<p class="text-xs text-[#161B18]/85">' + escapeHtml(b.notes) + '</p>' +
+                  '<div class="text-[11px] text-[#161B18]/60">Responsable: ' + escapeHtml(b.author) + '</div>' +
+                '</div>'
+              );
+            })
+            .join('');
+        };
+
+        window.openBitacoraModal = function (preZoneId, preSpeciesId) {
+          const today = new Date().toISOString().slice(0, 10);
+          const zoneOpts = ZONES.map(function (z) {
+            return '<option value="' + z.id + '" ' + (preZoneId === z.id ? 'selected' : '') + '>' + escapeHtml(z.name) + '</option>';
+          }).join('');
+          const spOpts =
+            '<option value="">Toda la parcela (general)</option>' +
+            state.data.species
+              .map(function (sp) {
+                return '<option value="' + sp.id + '" ' + (preSpeciesId === sp.id ? 'selected' : '') + '>' + escapeHtml(sp.commonName) + '</option>';
+              })
+              .join('');
+
+          const html =
+            '<form onsubmit="window.handleBitacoraSubmit(event)" class="space-y-4">' +
+              '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">' +
+                '<div><label class="block text-xs font-semibold mb-1">Tipo de labor *</label><select id="bit-type" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm">' +
+                  '<option>Riego</option><option>Abono / Composta</option><option>Poda</option><option>Trasplante</option><option>Control Biológico de Plagas</option><option>Colocación Placa QR</option>' +
+                '</select></div>' +
+                '<div><label class="block text-xs font-semibold mb-1">Fecha *</label><input id="bit-date" type="date" required value="' + today + '" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm"/></div>' +
+                '<div><label class="block text-xs font-semibold mb-1">Parcela / Zona *</label><select id="bit-zone" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm">' + zoneOpts + '</select></div>' +
+                '<div><label class="block text-xs font-semibold mb-1">Especie vinculada</label><select id="bit-species" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm">' + spOpts + '</select></div>' +
+              '</div>' +
+              '<div><label class="block text-xs font-semibold mb-1">Responsable *</label><input id="bit-author" required placeholder="Nombre o brigada" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm"/></div>' +
+              '<div><label class="block text-xs font-semibold mb-1">Observaciones en campo *</label><textarea id="bit-notes" required rows="3" placeholder="Estado de humedad, brotes, plagas observadas, cantidad de composta..." class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm"></textarea></div>' +
+              '<div class="flex justify-end gap-2 pt-2">' +
+                '<button type="button" onclick="window.closeModal()" class="px-4 py-2 rounded-lg text-xs font-semibold bg-white border border-[#161B18]/20 cursor-pointer">Cancelar</button>' +
+                '<button type="submit" class="gold-gradient-btn px-5 py-2 rounded-lg text-xs font-bold border border-[#0D100E] cursor-pointer">Guardar Registro</button>' +
+              '</div>' +
+            '</form>';
+          openModal('Registrar Cuidado en Bitácora', html);
+        };
+
+        window.handleBitacoraSubmit = function (ev) {
+          ev.preventDefault();
+          const author = document.getElementById('bit-author').value.trim();
+          const notes = document.getElementById('bit-notes').value.trim();
+          if (!author || !notes) return;
+          state.data.bitacora.unshift({
+            id: 'b-' + Date.now(),
+            date: document.getElementById('bit-date').value,
+            type: document.getElementById('bit-type').value,
+            zoneId: document.getElementById('bit-zone').value,
+            speciesId: document.getElementById('bit-species').value,
+            author: author,
+            notes: notes
+          });
+          saveState();
+          window.renderBitacora();
+          window.closeModal();
+          showToast('Labor registrada en la bitácora del huerto');
+        };
+
+        // Community Notices
+        function renderNotices() {
+          const el = document.getElementById('notices-list');
+          if (!el) return;
+          el.innerHTML = state.data.notices
+            .map(function (n) {
+              return (
+                '<article class="p-3.5 rounded-xl bg-[#F7F6F1] border border-[#161B18]/12 space-y-1">' +
+                  '<div class="flex items-center justify-between gap-2 text-[11px] font-semibold text-[#2D6A4F]">' +
+                    '<span>' + escapeHtml(n.date) + '</span>' +
+                    (state.role === 'admin'
+                      ? '<button type="button" onclick="window.deleteNotice(\'' + n.id + '\')" class="text-red-700 hover:underline cursor-pointer">Quitar</button>'
+                      : '') +
+                  '</div>' +
+                  '<h3 class="text-sm font-bold text-[#0D100E]">' + escapeHtml(n.title) + '</h3>' +
+                  '<div class="text-xs font-medium text-[#161B18]/70">Punto de encuentro: ' + escapeHtml(n.place) + '</div>' +
+                  '<p class="text-xs text-[#161B18]/80 pt-0.5">' + escapeHtml(n.description) + '</p>' +
+                '</article>'
+              );
+            })
+            .join('');
+        }
+
+        window.openNoticeModal = function () {
+          const html =
+            '<form onsubmit="window.handleNoticeSubmit(event)" class="space-y-4">' +
+              '<div><label class="block text-xs font-semibold mb-1">Título del aviso o taller *</label><input id="not-title" required class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm"/></div>' +
+              '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">' +
+                '<div><label class="block text-xs font-semibold mb-1">Fecha y hora *</label><input id="not-date" required placeholder="Ej. Jueves 26 nov · 10:00 h" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm"/></div>' +
+                '<div><label class="block text-xs font-semibold mb-1">Zona / punto de encuentro *</label><input id="not-place" required placeholder="Ej. Círculo Polinizador" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm"/></div>' +
+              '</div>' +
+              '<div><label class="block text-xs font-semibold mb-1">Detalles *</label><textarea id="not-desc" required rows="3" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm"></textarea></div>' +
+              '<div class="flex justify-end gap-2 pt-2">' +
+                '<button type="button" onclick="window.closeModal()" class="px-4 py-2 rounded-lg text-xs font-semibold bg-white border border-[#161B18]/20 cursor-pointer">Cancelar</button>' +
+                '<button type="submit" class="gold-gradient-btn px-5 py-2 rounded-lg text-xs font-bold border border-[#0D100E] cursor-pointer">Publicar Aviso</button>' +
+              '</div>' +
+            '</form>';
+          openModal('Publicar Aviso Comunitario', html);
+        };
+
+        window.handleNoticeSubmit = function (ev) {
+          ev.preventDefault();
+          const title = document.getElementById('not-title').value.trim();
+          const date = document.getElementById('not-date').value.trim();
+          const place = document.getElementById('not-place').value.trim();
+          const description = document.getElementById('not-desc').value.trim();
+          if (!title || !date || !place || !description) return;
+          state.data.notices.unshift({ id: 'n-' + Date.now(), title: title, date: date, place: place, description: description });
+          saveState();
+          renderNotices();
+          window.closeModal();
+          showToast('Aviso comunitario publicado');
+        };
+
+        window.deleteNotice = function (id) {
+          state.data.notices = state.data.notices.filter(function (n) { return n.id !== id; });
+          saveState();
+          renderNotices();
+          showToast('Aviso eliminado');
+        };
+
+        // Instagram Showcase Controls
+        function normalizeIg(raw) {
+          const trimmed = (raw || '').trim();
+          const m = trimmed.match(/instagram\.com\/(p|reel|tv)\/([A-Za-z0-9_-]+)/i);
+          if (!m) return null;
+          return {
+            clean: 'https://www.instagram.com/' + m[1].toLowerCase() + '/' + m[2] + '/',
+            embed: 'https://www.instagram.com/p/' + m[2] + '/embed'
+          };
+        }
+
+        function renderInstagramShowcase() {
+          const ig = state.data.instagram;
+          const postIframe = document.getElementById('ig-post-iframe');
+          const postLink = document.getElementById('ig-post-fallback-link');
+          const reelIframe = document.getElementById('ig-reel-iframe');
+          const reelLink = document.getElementById('ig-reel-fallback-link');
+          if (postIframe && ig.postEmbed) postIframe.src = ig.postEmbed;
+          if (postLink && ig.postUrl) postLink.href = ig.postUrl;
+          if (reelIframe && ig.reelEmbed) reelIframe.src = ig.reelEmbed;
+          if (reelLink && ig.reelUrl) reelLink.href = ig.reelUrl;
+        }
+
+        window.openInstagramEditModal = function () {
+          const ig = state.data.instagram;
+          const html =
+            '<form onsubmit="window.handleInstagramSubmit(event)" class="space-y-4">' +
+              '<p class="text-sm text-[#161B18]/80">Pega los nuevos enlaces de Instagram (publicación o reel de @huerto_comunitario_cucsh) para actualizar la vitrina multimedia.</p>' +
+              '<div><label class="block text-xs font-semibold mb-1">URL Publicación Destacada *</label><input id="ig-edit-post" type="url" required value="' + escapeHtml(ig.postUrl) + '" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm"/></div>' +
+              '<div><label class="block text-xs font-semibold mb-1">URL Video / Reel en Acción *</label><input id="ig-edit-reel" type="url" required value="' + escapeHtml(ig.reelUrl) + '" class="w-full px-3 py-2 rounded-lg border border-[#161B18]/20 bg-white text-sm"/></div>' +
+              '<div class="flex justify-end gap-2 pt-2">' +
+                '<button type="button" onclick="window.closeModal()" class="px-4 py-2 rounded-lg text-xs font-semibold bg-white border border-[#161B18]/20 cursor-pointer">Cancelar</button>' +
+                '<button type="submit" class="gold-gradient-btn px-5 py-2 rounded-lg text-xs font-bold border border-[#0D100E] cursor-pointer">Actualizar Vitrina</button>' +
+              '</div>' +
+            '</form>';
+          openModal('Cambiar enlaces de Instagram', html);
+        };
+
+        window.handleInstagramSubmit = function (ev) {
+          ev.preventDefault();
+          const pNorm = normalizeIg(document.getElementById('ig-edit-post').value);
+          const rNorm = normalizeIg(document.getElementById('ig-edit-reel').value);
+          if (!pNorm || !rNorm) {
+            showToast('Ingresa enlaces válidos de publicaciones o reels de Instagram.', 'error');
+            return;
+          }
+          state.data.instagram = {
+            postUrl: pNorm.clean,
+            postEmbed: pNorm.embed,
+            reelUrl: rNorm.clean,
+            reelEmbed: rNorm.embed
+          };
+          saveState();
+          renderInstagramShowcase();
+          window.closeModal();
+          showToast('Enlaces de Instagram actualizados');
+        };
+
+        // Top-level Navigation, Role & Map Controls (exposed on window)
+        window.switchTab = function (tab) {
+          state.activeTab = tab;
+          ['mapa', 'fichas', 'tablero'].forEach(function (t) {
+            const sec = document.getElementById('view-' + t);
+            if (sec) sec.classList.toggle('hidden', t !== tab);
+            const navBtn = document.getElementById('nav-tab-' + t);
+            if (navBtn) {
+              navBtn.className =
+                'nav-tab-btn py-2 border-b-2 whitespace-nowrap shrink-0 transition-colors cursor-pointer ' +
+                (t === tab
+                  ? 'border-[#D4AF37] text-[#E6C35C]'
+                  : 'border-transparent text-[#F7F6F1]/80 hover:text-[#E6C35C]');
+            }
+            const mobBtn = document.getElementById('mob-tab-' + t);
+            if (mobBtn) {
+              mobBtn.className =
+                'mob-tab-btn px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 cursor-pointer ' +
+                (t === tab
+                  ? 'bg-[#D4AF37] text-[#0D100E]'
+                  : 'bg-[#0D100E] text-[#F7F6F1]/85 border border-[#D4AF37]/25');
+            }
+          });
+        };
+
+        window.goToInstagramShowcase = function () {
+          window.switchTab('tablero');
+          setTimeout(function () {
+            const vitrina = document.getElementById('instagram-vitrina');
+            if (vitrina) vitrina.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 60);
+        };
+
+        window.setRole = function (role) {
+          state.role = role;
+          const isAdmin = role === 'admin';
+          const visBtn = document.getElementById('role-btn-visitor');
+          const admBtn = document.getElementById('role-btn-admin');
+          if (visBtn && admBtn) {
+            visBtn.className =
+              'px-3 py-1 rounded-md text-xs font-semibold transition-colors whitespace-nowrap shrink-0 cursor-pointer ' +
+              (!isAdmin ? 'bg-[#2D6A4F] text-[#F7F6F1]' : 'text-[#F7F6F1]/75 hover:text-[#E6C35C]');
+            admBtn.className =
+              'px-3 py-1 rounded-md text-xs font-semibold transition-colors whitespace-nowrap shrink-0 cursor-pointer ' +
+              (isAdmin ? 'bg-[#D4AF37] text-[#0D100E]' : 'text-[#F7F6F1]/75 hover:text-[#E6C35C]');
+          }
+          ['admin-quick-btn', 'btn-new-species', 'btn-new-notice', 'btn-edit-ig-links'].forEach(function (id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('hidden', !isAdmin);
+          });
+          renderCatalog();
+          window.renderKanbanBoard();
+          renderNotices();
+        };
+
+        window.openQuickAdminModal = function () {
+          const spOpts = state.data.species
+            .map(function (s) { return '<option value="' + s.id + '">' + escapeHtml(s.commonName) + '</option>'; })
+            .join('');
+          const html =
+            '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">' +
+              '<button type="button" onclick="window.openSpeciesFormModal(null)" class="p-4 rounded-xl bg-white border border-[#161B18]/15 hover:border-[#D4AF37] text-left cursor-pointer">' +
+                '<div class="font-bold text-sm text-[#0D100E]">+ Nueva Especie Botánica</div>' +
+                '<div class="text-xs text-[#161B18]/70 mt-0.5">Crear ficha completa y generar código QR</div>' +
+              '</button>' +
+              '<button type="button" onclick="window.openTaskModal()" class="p-4 rounded-xl bg-white border border-[#161B18]/15 hover:border-[#D4AF37] text-left cursor-pointer">' +
+                '<div class="font-bold text-sm text-[#0D100E]">+ Nueva Tarea en Tablero</div>' +
+                '<div class="text-xs text-[#161B18]/70 mt-0.5">Asignar labor a parcela y brigada</div>' +
+              '</button>' +
+              '<button type="button" onclick="window.openNoticeModal()" class="p-4 rounded-xl bg-white border border-[#161B18]/15 hover:border-[#D4AF37] text-left cursor-pointer">' +
+                '<div class="font-bold text-sm text-[#0D100E]">+ Publicar Aviso Comunitario</div>' +
+                '<div class="text-xs text-[#161B18]/70 mt-0.5">Anunciar talleres, compostaje y voluntariados</div>' +
+              '</button>' +
+              '<button type="button" onclick="window.openInstagramEditModal()" class="p-4 rounded-xl bg-white border border-[#161B18]/15 hover:border-[#D4AF37] text-left cursor-pointer">' +
+                '<div class="font-bold text-sm text-[#0D100E]">✏️ Actualizar Vitrina Instagram</div>' +
+                '<div class="text-xs text-[#161B18]/70 mt-0.5">Cambiar publicación o reel destacado</div>' +
+              '</button>' +
+            '</div>' +
+            '<div class="bg-[#161B18] text-[#F7F6F1] p-4 rounded-xl border border-[#D4AF37]/40 space-y-2">' +
+              '<div class="text-xs font-bold text-[#E6C35C]">Subir o reemplazar foto rápida de una especie</div>' +
+              '<div class="flex flex-wrap gap-2">' +
+                '<select id="quick-photo-sp" class="flex-1 min-w-[180px] px-3 py-2 rounded-lg bg-[#0D100E] border border-[#D4AF37]/40 text-xs text-white">' + spOpts + '</select>' +
+                '<button type="button" onclick="window.openPhotoUploadModal(document.getElementById(\'quick-photo-sp\').value)" class="gold-gradient-btn px-4 py-2 rounded-lg text-xs font-bold cursor-pointer">📷 Actualizar Foto</button>' +
+              '</div>' +
+            '</div>';
+          openModal('Gestión Rápida · Colectivo Admin', html);
+        };
+
+        window.setMapMode = function (mode) {
+          state.mapMode = mode;
+          const btnL = document.getElementById('btn-mode-lines');
+          const btnM = document.getElementById('btn-mode-markers');
+          const active = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold border transition-colors whitespace-nowrap cursor-pointer bg-[#0D100E] text-[#E6C35C] border-[#D4AF37]';
+          const idle = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold border transition-colors whitespace-nowrap cursor-pointer bg-white text-[#161B18] border-[#161B18]/20 hover:border-[#D4AF37]';
+          if (btnL) btnL.className = mode === 'lines' ? active : idle;
+          if (btnM) btnM.className = mode === 'markers' ? active : idle;
+          renderSvgMapOverlays();
+        };
+
+        window.setMapCategory = function (cat) {
+          state.mapCategory = cat;
+          document.querySelectorAll('.map-cat-btn').forEach(function (btn) {
+            const isAct = btn.getAttribute('data-map-cat') === cat;
+            btn.className =
+              'map-cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer ' +
+              (isAct ? 'bg-[#1B4332] text-white' : 'bg-white border border-[#161B18]/15 text-[#161B18] hover:border-[#2D6A4F]');
+          });
+          renderSvgMapOverlays();
+          renderQuickZoneGrid();
+        };
+
+        window.previewZone = function (zoneId) {
+          state.hoveredZoneId = zoneId;
+          renderSvgMapOverlays();
+        };
+
+        function populateSelectOptions() {
+          const zoneOpts =
+            '<option value="Todas">Todas las zonas</option>' +
+            ZONES.map(function (z) { return '<option value="' + z.id + '">' + escapeHtml(z.name) + '</option>'; }).join('');
+          const fZone = document.getElementById('fichas-zone-filter');
+          const kZone = document.getElementById('kanban-zone-filter');
+          if (fZone) fZone.innerHTML = zoneOpts;
+          if (kZone) kZone.innerHTML = zoneOpts;
+        }
+
+        function handleHashRouting() {
+          const hash = window.location.hash || '';
+          const match = hash.replace(/^#/, '').match(/^ficha\/([a-z0-9-]+)$/i);
+          if (match) {
+            const id = match[1].toLowerCase();
+            const sp = getSpeciesById(id);
+            if (sp) {
+              window.switchTab('fichas');
+              window.openSpeciesModal(sp.id);
+            }
+          }
+        }
+
+        function init() {
+          populateSelectOptions();
+          bindMapInteractions();
+          renderSvgMapOverlays();
+          renderQuickZoneGrid();
+          renderCatalog();
+          window.renderKanbanBoard();
+          window.renderBitacora();
+          renderNotices();
+          renderInstagramShowcase();
+          window.setRole('visitor');
+          window.addEventListener('hashchange', handleHashRouting);
+          handleHashRouting();
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', init);
+        } else {
+          init();
+        }
+      })();
+    </script>
+  </body>
+</html>
